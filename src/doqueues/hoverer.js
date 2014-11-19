@@ -26,7 +26,7 @@ var Hoverer = function(init)
 
   function hover(evt)
   {
-    addOffsetToEvt(evt);
+    doSetPosOnEvent(evt);
 
     for(var i = 0; i < nothovering.length; i++)
     {

@@ -14,7 +14,7 @@ var Debugger = function(init)
   for(var i = 0; i < self.history; i++)
   {
     cells[i] = document.createElement('div');
-    source.appendChild(cells[i]);
+    self.source.appendChild(cells[i]);
   }
 
   self.log = function(txt)
@@ -25,8 +25,8 @@ var Debugger = function(init)
       var l = log.length;
       for(var i = 0; i < cells.length; i++)
       {
-        if(l > 0) cells.innerHTML = log[l-1];
-        else      cells.innerHTML = "";
+        if(l > 0) cells[i].innerHTML = log[l-1];
+        else      cells[i].innerHTML = "";
         l--;
       }
     }

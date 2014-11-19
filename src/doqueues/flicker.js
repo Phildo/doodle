@@ -18,7 +18,7 @@ var Flicker = function(init)
 
   function begin(evt)
   {
-    addOffsetToEvt(evt);
+    doSetPosOnEvent(evt);
     for(var i = 0; i < flickables.length; i++)
     {
       if(
@@ -36,7 +36,7 @@ var Flicker = function(init)
   }
   function drag(evt)
   {
-    addOffsetToEvt(evt);
+    doSetPosOnEvent(evt);
     for(var i = 0; i < flicking.length; i++)
     {
       callbackQueue.push(flicking[i].flicking);

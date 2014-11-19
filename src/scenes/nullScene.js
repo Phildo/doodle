@@ -1,4 +1,4 @@
-var NullScene = function(game, canv)
+var NullScene = function(game, stage)
 {
   var self = this;
 

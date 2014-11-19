@@ -17,7 +17,7 @@ var Clicker = function(init)
 
   function click(evt)
   {
-    addOffsetToEvt(evt);
+    doSetPosOnEvent(evt);
     for(var i = 0; i < clickables.length; i++)
     {
       if(

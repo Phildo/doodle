@@ -18,7 +18,7 @@ var Dragger = function(init)
 
   function begin(evt)
   {
-    addOffsetToEvt(evt);
+    doSetPosOnEvent(evt);
     for(var i = 0; i < draggables.length; i++)
     {
       if(
@@ -36,7 +36,7 @@ var Dragger = function(init)
   }
   function drag(evt)
   {
-    addOffsetToEvt(evt);
+    doSetPosOnEvent(evt);
     for(var i = 0; i < dragging.length; i++)
     {
       callbackQueue.push(dragging[i].drag);
@@ -45,7 +45,7 @@ var Dragger = function(init)
   }
   function end(evt)
   {
-    addOffsetToEvt(evt);
+    doSetPosOnEvent(evt);
     for(var i = 0; i < dragging.length; i++)
     {
       callbackQueue.push(dragging[i].dragFinish);

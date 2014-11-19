@@ -26,7 +26,7 @@ var Presser = function(init)
   {
     if(!down) return;
 
-    addOffsetToEvt(evt);
+    doSetPosOnEvent(evt);
     var alreadypressing;
     for(var i = 0; i < pressables.length; i++)
     {

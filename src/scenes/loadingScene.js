@@ -1,9 +1,10 @@
-var LoadingScene = function(game, canv)
+var LoadingScene = function(game, stage)
 {
   var self = this;
   var pad;
   var barw;
   var progress;
+  var canv = stage.drawCanv;
 
   var imagesloaded = 0;
   var img_srcs = [];
