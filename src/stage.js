@@ -1,26 +1,31 @@
-var Stage = function()
+//Wrapper for "high performance" drawing (really, just pseudo double-buffering)
+var Stage = function(init)
 {
-  var width = 640;
-  var height = 320;
-
-  this.drawCanv = new Canv(width,height);
-  this.drawCanv.context.fillStyle = "#000000";
-  this.drawCanv.context.strokeStyle = "#000000";
-  this.drawCanv.context.font = "12px vg_font";
-  this.dispCanv = new Canv(width,height);
-  this.dispCanv.canvas.style.border = "1px solid black";
-
-  this.draw = function()
+  var default_init =
   {
-    this.drawCanv.blitTo(this.dispCanv);
+    width:640,
+    height:320,
+    container:"stage_container"
+  }
+
+  var self = this;
+  doMapInitDefaults(self,init,default_init);
+
+  self.drawCanv = new Canv({width:self.width,height:self.height});
+  self.dispCanv = new Canv({width:self.width,height:self.height});
+  self.dispCanv.canvas.style.border = "1px solid black";
+
+  self.draw = function()
+  {
+    self.drawCanv.blitTo(self.dispCanv);
   };
 
-  this.clear = function()
+  self.clear = function()
   {
-    this.drawCanv.clear();
-    this.dispCanv.clear();
+    self.drawCanv.clear();
+    self.dispCanv.clear();
   };
 
-  document.getElementById("stage_container").insertBefore(this.dispCanv.canvas, document.getElementById("shadow"));
+  document.getElementById(self.container).appendChild(self.dispCanv.canvas);
 };
 

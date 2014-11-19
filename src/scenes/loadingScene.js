@@ -1,10 +1,12 @@
 var LoadingScene = function(game, canv)
 {
+  var self = this;
   var pad;
   var barw;
   var progress;
 
   var imagesloaded = 0;
+  var img_srcs = [];
   var images = [];
 
   var imageLoaded = function()
@@ -12,39 +14,40 @@ var LoadingScene = function(game, canv)
     imagesloaded++;
   };
 
-  this.ready = function()
+  self.ready = function()
   {
     pad = 20;
     barw = (canv.canvas.width-(2*pad));
     progress = 0;
-    //canv.context.fillStyle = "#000000";
-    //canv.context.font = "20px vg_font";
-    //canv.context.fillText(".",0,0);// funky way to encourage the custom font to load
+    canv.context.fillStyle = "#000000";
+    canv.context.fillText(".",0,0);// funky way to encourage any custom font to load
 
-    for(var i = 0; i < images.length; i++)
+    //put strings in 'img_srcs' as separate array to get "static" count
+    /*
+    img_srcs[0] = "assets/man.png";
+    */
+    for(var i = 0; i < img_srcs.length; i++)
     {
       images[i] = new Image();
       images[i].onload = imageLoaded; 
+      images[i].src = img_srcs[i];
     }
-    /*
-    images[0].src = "assets/man.png";
-    */
     imageLoaded(); //call once to prevent 0/0 != 100% bug
   };
 
-  this.tick = function()
+  self.tick = function()
   {
-    if(progress <= imagesloaded/(images.length+1)) progress += 0.01;
+    if(progress <= imagesloaded/(img_srcs.length+1)) progress += 0.01;
     if(progress >= 1.0) game.nextScene();
   };
 
-  this.draw = function()
+  self.draw = function()
   {
     canv.context.fillRect(pad,canv.canvas.height/2,progress*barw,1);
     canv.context.strokeRect(pad-1,(canv.canvas.height/2)-1,barw+2,3);
   };
 
-  this.cleanup = function()
+  self.cleanup = function()
   {
     progress = 0;
     imagesloaded = 0;
