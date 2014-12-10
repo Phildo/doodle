@@ -10,97 +10,151 @@ var TestScene = function(game, stage)
   var dragger;
   var flicker;
   var presser;
+  var particler;
 
-  var spacer =
+  var spacer = new (function()
   {
-    cur_x:0,
-    cur_y:0,
-    x_pad:10,
-    y_pad:10,
-    space_h:function(o)
+    var self = this;
+
+    self.cur_x = 0;
+    self.cur_y = 0;
+    self.x_pad = 10;
+    self.y_pad = 10;
+    self.space_h = function(o)
     {
-      this.cur_x += this.x_pad;
-      o.x = this.cur_x;
-      o.y = this.cur_y;
-      this.cur_x += o.w;
+      self.cur_x += self.x_pad;
+      o.x = self.cur_x;
+      o.y = self.cur_y;
+      self.cur_x += o.w;
     },
-    space_v:function(o)
+    self.space_v = function(o)
     {
-      this.cur_y += this.y_pad;
-      o.x = this.cur_x;
-      o.y = this.cur_y;
-      this.cur_y += o.h;
+      self.cur_y += self.y_pad;
+      o.x = self.cur_x;
+      o.y = self.cur_y;
+      self.cur_y += o.h;
     },
-    pad_x:function()
+    self.pad_x = function()
     {
-      this.cur_x += this.x_pad;
+      self.cur_x += self.x_pad;
     },
-    pad_y:function()
+    self.pad_y = function()
     {
-      this.cur_y += this.y_pad;
+      self.cur_y += self.y_pad;
     }
-  };
+  })();
   spacer.pad_x();
 
-  var clicktest =
+  var clicktest = new (function()
   {
-    x:0,
-    y:0,
-    w:20,
-    h:20,
-    click:function(evt){dbugger.log("clicktest:"+evt.doX+","+evt.doY);},
-    draw:function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(this.x,this.y,this.w,this.h);}
-  };
+    var self = this;
+
+    self.x = 0;
+    self.y = 0;
+    self.w = 20;
+    self.h = 20;
+    self.click = function(evt){dbugger.log("clicktest:"+evt.doX+","+evt.doY);},
+    self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,self.w,self.h);}
+  })();
   spacer.space_v(clicktest);
 
-  var hovertest =
+  var hovertest = new (function()
   {
-    x:0,
-    y:0,
-    w:20,
-    h:20,
-    hover:function(evt){dbugger.log("hovertest:"+evt.doX+","+evt.doY);},
-    unhover:function(evt){dbugger.log("unhovertest:"+evt.doX+","+evt.doY);},
-    draw:function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(this.x,this.y,this.w,this.h);}
-  };
+    var self = this;
+
+    self.x = 0;
+    self.y = 0;
+    self.w = 20;
+    self.h = 20;
+    self.hover = function(evt){dbugger.log("hovertest:"+evt.doX+","+evt.doY);},
+    self.unhover = function(evt){dbugger.log("unhovertest:"+evt.doX+","+evt.doY);},
+    self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,self.w,self.h);}
+  })();
   spacer.space_v(hovertest);
 
-  var dragtest =
+  var dragtest = new (function()
   {
-    x:0,
-    y:0,
-    w:20,
-    h:20,
-    dragStart:function(evt){dbugger.log("dragtest:"+evt.doX+","+evt.doY);},
-    drag:function(evt){dbugger.log("dragtest:"+evt.doX+","+evt.doY);},
-    dragFinish:function(evt){dbugger.log("dragtest:"+evt.doX+","+evt.doY);},
-    draw:function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(this.x,this.y,this.w,this.h);}
-  };
+    var self = this;
+
+    self.x = 0;
+    self.y = 0;
+    self.w = 20;
+    self.h = 20;
+    self.dragStart = function(evt){dbugger.log("dragtest:"+evt.doX+","+evt.doY);},
+    self.drag = function(evt){dbugger.log("dragtest:"+evt.doX+","+evt.doY);},
+    self.dragFinish = function(evt){dbugger.log("dragtest:"+evt.doX+","+evt.doY);},
+    self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,self.w,self.h);}
+  })();
   spacer.space_v(dragtest);
 
-  var flicktest =
+  var flicktest = new (function()
   {
-    x:0,
-    y:0,
-    w:20,
-    h:20,
-    flickStart:function(evt){dbugger.log("flicktest:"+evt.doX+","+evt.doY);},
-    flicking:function(evt){dbugger.log("flicktest:"+evt.doX+","+evt.doY);},
-    flick:function(evt){dbugger.log("flicktest:"+evt.doX+","+evt.doY);},
-    draw:function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(this.x,this.y,this.w,this.h);}
-  };
+    var self = this;
+
+    self.x = 0;
+    self.y = 0;
+    self.w = 20;
+    self.h = 20;
+    self.flickStart = function(evt){dbugger.log("flicktest:"+evt.doX+","+evt.doY);},
+    self.flicking = function(evt){dbugger.log("flicktest:"+evt.doX+","+evt.doY);},
+    self.flick = function(evt){dbugger.log("flicktest:"+evt.doX+","+evt.doY);},
+    self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,self.w,self.h);}
+  })();
   spacer.space_v(flicktest);
 
-  var presstest =
+  var presstest = new (function()
   {
-    x:0,
-    y:0,
-    w:20,
-    h:20,
-    press:function(evt){dbugger.log("presstest:"+evt.doX+","+evt.doY);},
-    draw:function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(this.x,this.y,this.w,this.h);}
-  };
+    var self = this;
+
+    self.x = 0;
+    self.y = 0;
+    self.w = 20;
+    self.h = 20;
+    self.press = function(evt){dbugger.log("presstest:"+evt.doX+","+evt.doY);},
+    self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,self.w,self.h);}
+  })();
   spacer.space_v(presstest);
+
+  var particle = function()
+  {
+    var self = this;
+    self.i = 0;
+    self.x = 0;
+    self.y = 0;
+    self.vx = 0;
+    self.vy = 0;
+    self.tick = function()
+    {
+      self.i++;
+      self.x += self.vx;
+      self.y += self.vy;
+      self.vy += 0.1;
+      return (self.i < 100);
+    };
+    self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,2,2);};
+  };
+  var fountain = new (function()
+  {
+    var self = this;
+    self.particler; //should get injected before added
+    self.x = 0;
+    self.y = 0;
+    self.w = 20;
+    self.h = 20;
+    self.i = 0;
+    self.tick = function()
+    {
+      var p = new particle();
+      p.x = self.x;
+      p.y = self.y;
+      p.vx = (Math.random()-0.5)*2;
+      p.vy = Math.random()*-2;
+      self.particler.register(p);
+      return true;
+    };
+    self.draw = function(canv){};
+  })();
+  spacer.space_v(fountain);
 
 
   self.ready = function()
@@ -129,6 +183,12 @@ var TestScene = function(game, stage)
     presser = new Presser({source:stage.dispCanv.canvas});
     presser.register(presstest);
     drawer.register(presstest);
+
+    particler = new Particler({});
+    fountain.particler = particler; //inject
+    particler.register(fountain);
+    drawer.register(particler);
+    ticker.register(particler);
   };
 
   self.tick = function()
