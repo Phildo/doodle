@@ -26,7 +26,7 @@ function doSetPosOnEvent(evt)
     evt.doX = evt.offsetX;
     evt.doY = evt.offsetY;
   }
-  else if(evt.touches != undefined)
+  else if(evt.touches != undefined && evt.touches[0] != undefined)
   {
     evt.doX = evt.touches[0].pageX - evt.touches[0].target.offsetLeft;
     evt.doY = evt.touches[0].pageY - evt.touches[0].target.offsetTop;
@@ -41,6 +41,17 @@ function doSetPosOnEvent(evt)
     evt.doX = 0;
     evt.doY = 0;
   }
+}
+
+//rect = {x:input.x,y:input.y,w:input.w,h:input.h};
+//pass in output rect because object creation/cleanup expensive!
+//input CAN be output if you don't care about input being mutated
+function rectMap(oldr, newr, inputr, outputr)
+{
+  outputr.x = (inputr.x/oldr.w)*newr.w;
+  outputr.y = (inputr.y/oldr.h)*newr.h;
+  outputr.w = (inputr.w/oldr.w)*newr.w;
+  outputr.h = (inputr.h/oldr.h)*newr.h;
 }
 
 /* No idea what this actually is... */

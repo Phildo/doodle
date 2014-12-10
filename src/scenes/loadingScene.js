@@ -25,7 +25,7 @@ var LoadingScene = function(game, stage)
 
     //put strings in 'img_srcs' as separate array to get "static" count
     /*
-    img_srcs[0] = "assets/man.png";
+    img_srcs.push("assets/man.png");
     */
     for(var i = 0; i < img_srcs.length; i++)
     {
