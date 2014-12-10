@@ -41,6 +41,17 @@ var Flicker = function(init)
     {
       callbackQueue.push(flicking[i].flicking);
       evtQueue.push(evt);
+      if(
+        evt.doX <= flickables[i].x-flickables[i].r ||
+        evt.doX >= flickables[i].x+flickables[i].w+flickables[i].r ||
+        evt.doY <= flickables[i].y-flickables[i].r ||
+        evt.doY >= flickables[i].y+flickables[i].h+flickables[i].r
+      )
+      {
+        callbackQueue.push(flicking[i].flick);
+        evtQueue.push(evt);
+        flicking.splice(i,1); i--;
+      }
     }
   }
   function end(evt)

@@ -53,7 +53,7 @@ var TestScene = function(game, stage)
     self.y = 0;
     self.w = 20;
     self.h = 20;
-    self.click = function(evt){dbugger.log("clicktest:"+evt.doX+","+evt.doY);},
+    self.click = function(evt){dbugger.log("clicktest: click "+evt.doX+","+evt.doY);},
     self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,self.w,self.h);}
   })();
   spacer.space_v(clicktest);
@@ -66,8 +66,8 @@ var TestScene = function(game, stage)
     self.y = 0;
     self.w = 20;
     self.h = 20;
-    self.hover = function(evt){dbugger.log("hovertest:"+evt.doX+","+evt.doY);},
-    self.unhover = function(evt){dbugger.log("unhovertest:"+evt.doX+","+evt.doY);},
+    self.hover = function(evt){dbugger.log("hovertest: hover "+evt.doX+","+evt.doY);},
+    self.unhover = function(evt){dbugger.log("hovertest: unhover "+evt.doX+","+evt.doY);},
     self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,self.w,self.h);}
   })();
   spacer.space_v(hovertest);
@@ -80,9 +80,9 @@ var TestScene = function(game, stage)
     self.y = 0;
     self.w = 20;
     self.h = 20;
-    self.dragStart = function(evt){dbugger.log("dragtest:"+evt.doX+","+evt.doY);},
-    self.drag = function(evt){dbugger.log("dragtest:"+evt.doX+","+evt.doY);},
-    self.dragFinish = function(evt){dbugger.log("dragtest:"+evt.doX+","+evt.doY);},
+    self.dragStart = function(evt){dbugger.log("dragtest: start "+evt.doX+","+evt.doY);},
+    self.drag = function(evt){dbugger.log("dragtest: drag "+evt.doX+","+evt.doY);},
+    self.dragFinish = function(evt){dbugger.log("dragtest: end "+evt.doX+","+evt.doY);},
     self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,self.w,self.h);}
   })();
   spacer.space_v(dragtest);
@@ -95,9 +95,10 @@ var TestScene = function(game, stage)
     self.y = 0;
     self.w = 20;
     self.h = 20;
-    self.flickStart = function(evt){dbugger.log("flicktest:"+evt.doX+","+evt.doY);},
-    self.flicking = function(evt){dbugger.log("flicktest:"+evt.doX+","+evt.doY);},
-    self.flick = function(evt){dbugger.log("flicktest:"+evt.doX+","+evt.doY);},
+    self.r = 20;
+    self.flickStart = function(evt){dbugger.log("flicktest: start "+evt.doX+","+evt.doY);},
+    self.flicking = function(evt){dbugger.log("flicktest: flicking "+evt.doX+","+evt.doY);},
+    self.flick = function(evt){dbugger.log("flicktest: flick "+evt.doX+","+evt.doY);},
     self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,self.w,self.h);}
   })();
   spacer.space_v(flicktest);
@@ -110,7 +111,7 @@ var TestScene = function(game, stage)
     self.y = 0;
     self.w = 20;
     self.h = 20;
-    self.press = function(evt){dbugger.log("presstest:"+evt.doX+","+evt.doY);},
+    self.press = function(evt){dbugger.log("presstest: press "+evt.doX+","+evt.doY);},
     self.draw = function(canv){canv.context.strokeStyle="#00FF00";canv.context.strokeRect(self.x,self.y,self.w,self.h);}
   })();
   spacer.space_v(presstest);
