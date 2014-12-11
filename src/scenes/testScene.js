@@ -138,24 +138,26 @@ var TestScene = function(game, stage)
   {
     var self = this;
     self.particler; //should get injected before added
-    self.x = 0;
-    self.y = 0;
+    self.x = 200;
+    self.y = 150;
     self.w = 20;
     self.h = 20;
     self.i = 0;
     self.tick = function()
     {
-      var p = new particle();
-      p.x = self.x;
-      p.y = self.y;
-      p.vx = (Math.random()-0.5)*2;
-      p.vy = Math.random()*-2;
-      self.particler.register(p);
+      for(var j = 0; j < 10; j++)
+      {
+        var p = new particle();
+        p.x = self.x;
+        p.y = self.y;
+        p.vx = (Math.random()-0.5)*2;
+        p.vy = Math.random()*-5;
+        self.particler.register(p);
+      }
       return true;
     };
     self.draw = function(canv){};
   })();
-  spacer.space_v(fountain);
 
 
   self.ready = function()
@@ -190,6 +192,7 @@ var TestScene = function(game, stage)
     particler.register(fountain);
     drawer.register(particler);
     ticker.register(particler);
+    setTimeout(function(){ ticker.unregister(particler); }, 10000);
   };
 
   self.tick = function()
