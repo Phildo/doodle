@@ -58,6 +58,8 @@ var Presser = function(init)
         evt.doY > pressing[i].y+pressing[i].h
       )
       {
+        callbackQueue.push(pressing[i].unpress);
+        evtQueue.push(evt);
         pressing.splice(i,1);
         i--;
       }
@@ -66,6 +68,11 @@ var Presser = function(init)
   function end(evt)
   {
     down = false;
+    for(var i = 0; i < pressing.length; i++)
+    {
+      callbackQueue.push(pressing[i].unpress);
+      evtQueue.push(evt);
+    }
     pressing = [];
   }
   self.flush = function()
@@ -99,7 +106,8 @@ var Pressable = function(args)
   self.y = args.y ? args.y : 0;
   self.w = args.w ? args.w : 0;
   self.h = args.h ? args.h : 0;
-  self.press  = args.press  ? args.press  : function(evt){ };
+  self.press   = args.press   ? args.press   : function(evt){ };
+  self.unpress = args.unpress ? args.unpress : function(evt){ };
 
   //nice for debugging purposes
   self.draw = function(canv)
