@@ -213,7 +213,27 @@ var TestScene = function(game, stage)
 
   self.cleanup = function()
   {
-  };
+    assetter.detach();
+    dbugger.detach();
+    ticker.detach();
+    drawer.detach();
+    clicker.detach();
+    hoverer.detach();
+    dragger.detach();
+    flicker.detach();
+    presser.detach();
+    particler.detach();
 
+    assetter.clear();
+    dbugger.clear();
+    ticker.clear();
+    drawer.clear();
+    clicker.clear();
+    hoverer.clear();
+    dragger.clear();
+    flicker.clear();
+    presser.clear();
+    particler.clear();
+  };
 };
 
