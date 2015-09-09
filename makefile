@@ -1,2 +1,3 @@
 make:
 	open ./index.html
+
