@@ -102,9 +102,24 @@ var Draggable = function(args)
   self.y = args.y ? args.y : 0;
   self.w = args.w ? args.w : 0;
   self.h = args.h ? args.h : 0;
-  self.dragStart  = args.dragStart  ? args.dragStart  : function(evt){ self.offX = self.x+(self.w/2)-evt.doX; self.offY = self.y+(self.h/2)-evt.doY; };
-  self.drag       = args.drag       ? args.drag       : function(evt){ self.x = evt.doX-(self.w/2)+self.offX; self.y = evt.doY-(self.h/2)+self.offY; };
-  self.dragFinish = args.dragFinish ? args.dragFinish : function(){};
+
+  self.dragStart = args.dragStart ? args.dragStart : function(evt)
+  {
+    self.offX = evt.doX-self.x;
+    self.offY = evt.doY-self.y;
+  }
+  self.drag = args.drag ? args.drag : function(evt)
+  {
+    self.deltaX = ((evt.doX-self.x)-self.offX);
+    self.deltaY = ((evt.doY-self.y)-self.offY);
+    self.x = self.x + self.deltaX;
+    self.y = self.y + self.deltaY;
+    self.offX = evt.doX - self.x;
+    self.offY = evt.doY - self.y;
+  }
+  self.dragFinish = args.dragFinish ? args.dragFinish : function()
+  {
+  }
 
   //nice for debugging purposes
   self.draw = function(canv)

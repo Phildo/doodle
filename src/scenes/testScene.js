@@ -10,6 +10,7 @@ var TestScene = function(game, stage)
   var dragger;
   var flicker;
   var presser;
+  var keyer;
   var particler;
 
   var spacer = new (function()
@@ -117,6 +118,9 @@ var TestScene = function(game, stage)
   })();
   spacer.space_v(presstest);
 
+  var inputtest = new NumberBox(0,0,20,20,1,function(){console.log('hooray');});
+  spacer.space_v(inputtest);
+
   var particle = function()
   {
     var self = this;
@@ -188,6 +192,11 @@ var TestScene = function(game, stage)
     presser.register(presstest);
     drawer.register(presstest);
 
+    keyer = new Keyer({source:stage.dispCanv.canvas});
+    keyer.register(inputtest);
+    dragger.register(inputtest);
+    drawer.register(inputtest);
+
     particler = new Particler({});
     fountain.particler = particler; //inject
     particler.register(fountain);
@@ -204,6 +213,7 @@ var TestScene = function(game, stage)
     flicker.flush();
     presser.flush();
     ticker.flush();
+    keyer.flush();
   };
 
   self.draw = function()
