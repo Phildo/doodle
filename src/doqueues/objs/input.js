@@ -16,35 +16,50 @@ function NumberBox(x,y,w,h,val,callback)
   self.ref_x = 0;
   self.delta_val = 0.01;
 
-  var processInput = function(n)
+  var validateNum = function(n)
   {
-    if(!isNaN(parseFloat(n)) && isFinite(n))
-      self.number = parseFloat(n);
-    callback(self.number);
+    if(!isNaN(parseFloat(n)) && isFinite(n)) return parseFloat(n);
+    else return self.number;
   }
 
   self.key = function(evt)
   {
-    if(evt.keyCode == 13) //enter
-    {
-      self.focused = false;
-      self.highlit = false;
-      self.value = ""+self.number;
-    }
   }
   self.key_letter = function(k)
   {
     if(self.focused)
     {
+      if(self.value == "0") self.value = "";
       if(self.highlit) self.value = ""+k;
       else             self.value = self.value+k;
+      self.number = validateNum(self.value);
       self.highlit = false;
-      processInput(self.value);
+      callback(self.number);
     }
-    self.print();
   }
   self.key_down = function(evt)
   {
+    if(evt.keyCode == 13) //enter
+    {
+      if(self.focused)
+        self.blur();
+    }
+    if(evt.keyCode == 8) //delete
+    {
+      if(self.highlit)
+      {
+        self.number = 0;
+        self.value = "0";
+        self.highlit = false;
+        callback(self.number);
+      }
+      else if(self.focused)
+      {
+        self.value = self.value.substring(0,self.value.length-1);
+        self.number = validateNum(self.value);
+        callback(self.number);
+      }
+    }
   }
   self.key_up = function(evt)
   {
@@ -67,37 +82,34 @@ function NumberBox(x,y,w,h,val,callback)
     self.deltaY = ((evt.doY-self.y)-self.offY);
     self.offX = evt.doX - self.x;
     self.offY = evt.doY - self.y;
-    processInput(self.number + self.deltaX*self.delta_val);
+    self.number = validateNum(self.number + self.deltaX*self.delta_val);
     self.value = ""+self.number;
 
     self.down = ptWithinObj(evt.doX, evt.doY, self);
-    self.print();
+    callback(self.number);
   }
   self.dragFinish = function()
   {
     if(self.down) self.highlit = !self.highlit;
     self.down = false;
-    self.print();
   }
 
   self.blur = function()
   {
     self.focused = false;
     self.highlit = false;
-    processInput(self.number);
     self.value = ""+self.number;
-    self.print();
+    callback(self.number);
   }
   self.focus = function()
   {
     self.focused = true;
     self.highlit = true;
-    self.print();
   }
   self.set = function(n)
   {
-    processInput(n);
-    self.print();
+    self.number = validateNum(n);
+    callback(self.number);
   }
 
   self.draw = function(canv)
@@ -111,7 +123,10 @@ function NumberBox(x,y,w,h,val,callback)
     if(self.down)    canv.context.strokeStyle = "#00F400";
     canv.context.strokeRect(self.x,self.y,self.w,self.h);
     canv.context.fillStyle = "#000000";
-    canv.context.fillText(self.value,self.x+self.w/2,self.y+self.h/2);
+    if(self.value.length < 5)
+      canv.context.fillText(self.value,self.x+4,self.y+self.h*3/4,self.w-4);
+    else
+      canv.context.fillText(self.value.substring(0,5)+"...",self.x+4,self.y+self.h*3/4,self.w-4);
   }
 
   self.print = function()
