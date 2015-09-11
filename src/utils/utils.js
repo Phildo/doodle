@@ -28,13 +28,13 @@ function doSetPosOnEvent(evt)
   }
   else if(evt.touches != undefined && evt.touches[0] != undefined)
   {
-    evt.doX = evt.touches[0].pageX-evt.touches[0].target.offsetLeft;
-    evt.doY = evt.touches[0].pageY-evt.touches[0].target.offsetTop;
+    evt.doX = evt.touches[0].pageX - evt.touches[0].target.offsetLeft;
+    evt.doY = evt.touches[0].pageY - evt.touches[0].target.offsetTop;
   }
   else if(evt.layerX != undefined && evt.originalTarget != undefined)
   {
-    evt.doX = evt.layerX-evt.originalTarget.offsetLeft;
-    evt.doY = evt.layerY-evt.originalTarget.offsetTop;
+    evt.doX = evt.layerX - evt.originalTarget.offsetLeft;
+    evt.doY = evt.layerY - evt.originalTarget.offsetTop;
   }
   else //give up because javascript is terrible
   {
