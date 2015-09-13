@@ -6,6 +6,7 @@ var TestScene = function(game, stage)
   var drawer;
   var ticker;
   var clicker;
+  var blurer;
   var hoverer;
   var dragger;
   var flicker;
@@ -118,7 +119,7 @@ var TestScene = function(game, stage)
   })();
   spacer.space_v(presstest);
 
-  var inputtest = new NumberBox(0,0,20,20,1,function(){console.log('hooray');});
+  var inputtest = new NumberBox(0,0,20,20,1,0.1,function(n){});
   spacer.space_v(inputtest);
 
   var particle = function()
@@ -193,9 +194,12 @@ var TestScene = function(game, stage)
     drawer.register(presstest);
 
     keyer = new Keyer({source:stage.dispCanv.canvas});
+    blurer = new Blurer({source:stage.dispCanv.canvas});
     keyer.register(inputtest);
+    blurer.register(inputtest);
     dragger.register(inputtest);
     drawer.register(inputtest);
+
 
     particler = new Particler({});
     fountain.particler = particler; //inject
@@ -208,6 +212,7 @@ var TestScene = function(game, stage)
   self.tick = function()
   {
     clicker.flush();
+    blurer.flush();
     hoverer.flush();
     dragger.flush();
     flicker.flush();
@@ -228,6 +233,7 @@ var TestScene = function(game, stage)
     ticker.detach();
     drawer.detach();
     clicker.detach();
+    blurer.detach();
     hoverer.detach();
     dragger.detach();
     flicker.detach();
@@ -239,6 +245,7 @@ var TestScene = function(game, stage)
     ticker.clear();
     drawer.clear();
     clicker.clear();
+    blurer.clear();
     hoverer.clear();
     dragger.clear();
     flicker.clear();

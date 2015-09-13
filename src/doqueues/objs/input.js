@@ -1,4 +1,4 @@
-function NumberBox(x,y,w,h,val,callback)
+function NumberBox(x,y,w,h,val,delta,callback)
 {
   var self = this;
   self.x = x;
@@ -14,7 +14,7 @@ function NumberBox(x,y,w,h,val,callback)
   self.down = false;
 
   self.ref_x = 0;
-  self.delta_val = 0.01;
+  self.delta = delta;
 
   var validateNum = function(n)
   {
@@ -82,7 +82,7 @@ function NumberBox(x,y,w,h,val,callback)
     self.deltaY = ((evt.doY-self.y)-self.offY);
     self.offX = evt.doX - self.x;
     self.offY = evt.doY - self.y;
-    self.number = validateNum(self.number + self.deltaX*self.delta_val);
+    self.number = validateNum(self.number + self.deltaX*self.delta);
     self.value = ""+self.number;
 
     self.down = ptWithinObj(evt.doX, evt.doY, self);
@@ -119,8 +119,9 @@ function NumberBox(x,y,w,h,val,callback)
       canv.context.fillStyle = "#8899FF";
       canv.context.fillRect(self.x,self.y,self.w,self.h);
     }
-    if(self.focused) canv.context.strokeStyle = "#F40000";
-    if(self.down)    canv.context.strokeStyle = "#00F400";
+         if(self.down)    canv.context.strokeStyle = "#00F400";
+    else if(self.focused) canv.context.strokeStyle = "#F40000";
+    else                  canv.context.strokeStyle = "#0000F4";
     canv.context.strokeRect(self.x,self.y,self.w,self.h);
     canv.context.fillStyle = "#000000";
     if(self.value.length < 5)
