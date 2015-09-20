@@ -28,13 +28,13 @@ function doSetPosOnEvent(evt)
   }
   else if(evt.touches != undefined && evt.touches[0] != undefined)
   {
-    evt.doX = evt.touches[0].pageX - evt.touches[0].target.offsetLeft;
-    evt.doY = evt.touches[0].pageY - evt.touches[0].target.offsetTop;
+    evt.doX = evt.touches[0].pageX-evt.touches[0].target.offsetLeft;
+    evt.doY = evt.touches[0].pageY-evt.touches[0].target.offsetTop;
   }
   else if(evt.layerX != undefined && evt.originalTarget != undefined)
   {
-    evt.doX = evt.layerX - evt.originalTarget.offsetLeft;
-    evt.doY = evt.layerY - evt.originalTarget.offsetTop;
+    evt.doX = evt.layerX-evt.originalTarget.offsetLeft;
+    evt.doY = evt.layerY-evt.originalTarget.offsetTop;
   }
   else //give up because javascript is terrible
   {
@@ -56,6 +56,27 @@ function lerp(s,e,t)
 function invlerp(s,e,v)
 {
   return (v-s)/(e-s);
+}
+
+function clerp(s,e,t)
+{
+  while(s < 0) s += Math.PI*2;
+  while(e < 0) e += Math.PI*2;
+
+       if(e > s && e-s > s-(e-Math.PI*2)) e -= Math.PI*2;
+  else if(s > e && s-e > (e+Math.PI*2)-s) e += Math.PI*2;
+
+  return lerp(s,e,t)%(Math.PI*2);
+}
+
+function cdist(a,b)
+{
+  while(a < 0) a += Math.PI*2;
+  while(b < 0) b += Math.PI*2;
+  var dist = Math.abs(a-b);
+  if(dist > Math.PI) dist = Math.PI*2-dist;
+
+  return dist;
 }
 
 function mapPt(from,to,pt)
