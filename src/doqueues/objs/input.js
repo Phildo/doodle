@@ -14,7 +14,6 @@ function NumberBox(x,y,w,h,val,delta,callback)
   self.highlit = false;
   self.down = false;
 
-  self.ref_x = 0;
   self.delta = delta;
 
   var validateNum = function(n)
@@ -231,3 +230,49 @@ function ToggleBox(x,y,w,h,val,callback)
   }
 }
 
+function SliderBox(x,y,w,h,min_val,max_val,val,callback)
+//register to dragger
+{
+  var self = this;
+  self.x = x;
+  self.y = y;
+  self.w = w;
+  self.h = h;
+
+  self.min_val = min_val;
+  self.max_val = max_val;
+  self.val = val;
+
+  self.dragStart = function(evt)
+  {
+  }
+  self.drag = function(evt)
+  {
+    if(evt.doX < self.x) evt.doX = self.x;
+    if(evt.doX > self.x+self.w) evt.doX = self.x+self.w;
+    self.val = min_val+(self.max_val-self.min_val)*((evt.doX-self.x)/self.w);
+    callback(self.number);
+  }
+  self.dragFinish = function()
+  {
+  }
+  self.set = function(n)
+  {
+    self.val = n;
+    callback(self.val);
+  }
+
+  self.draw = function(canv)
+  {
+    canv.context.fillStyle = "#333333";
+    canv.context.fillRect(self.x,self.y+self.h/3,self.w,self.h/3);
+    canv.context.fillStyle = "#000000";
+    var switch_x = self.x+(((self.val-self.min_val)/(self.max_val-self.min_val))*self.w);
+    canv.context.strokeRect(switch_x-(self.w/20),self.y,(self.w/10),self.h);
+  }
+
+  self.print = function()
+  {
+    console.log("("+self.x+","+self.y+","+self.w+","+self.h+") min:"+self.min_val+" max:"+self.max_val+" v:"+self.val+" "+"");
+  }
+}

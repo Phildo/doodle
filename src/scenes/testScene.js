@@ -119,8 +119,11 @@ var TestScene = function(game, stage)
   })();
   spacer.space_v(presstest);
 
-  var inputtest = new NumberBox(0,0,20,20,1,0.1,function(n){});
-  spacer.space_v(inputtest);
+  var numboxtest = new NumberBox(0,0,20,20,1,0.1,function(n){});
+  spacer.space_v(numboxtest);
+
+  var sliderboxtest = new SliderBox(0,10,100,20,0,100,50,function(n){});
+  spacer.space_v(sliderboxtest);
 
   var particle = function()
   {
@@ -195,11 +198,13 @@ var TestScene = function(game, stage)
 
     keyer = new Keyer({source:stage.dispCanv.canvas});
     blurer = new Blurer({source:stage.dispCanv.canvas});
-    keyer.register(inputtest);
-    blurer.register(inputtest);
-    dragger.register(inputtest);
-    drawer.register(inputtest);
+    keyer.register(numboxtest);
+    blurer.register(numboxtest);
+    dragger.register(numboxtest);
+    drawer.register(numboxtest);
 
+    dragger.register(sliderboxtest);
+    drawer.register(sliderboxtest);
 
     particler = new Particler({});
     fountain.particler = particler; //inject
