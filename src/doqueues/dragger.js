@@ -14,6 +14,7 @@ var Dragger = function(init)
   var evtQueue = [];
   self.register = function(draggable) { draggables.push(draggable); }
   self.unregister = function(draggable) { var i = draggables.indexOf(draggable); if(i != -1) draggables.splice(i,1); }
+  self.ignore = function() { dragging = []; callbackQueue = []; evtQueue = []; }
   self.clear = function() { draggables = []; }
   self.attach = function() //will get auto-called on create
   {
@@ -22,12 +23,14 @@ var Dragger = function(init)
       self.source.addEventListener('mousedown', begin, false);
       self.source.addEventListener('mousemove', drag,  false);
       self.source.addEventListener('mouseup',   end,   false);
+      window.addEventListener('mousemove', detectOut, false);
     }
     else if(platform == "MOBILE")
     {
       self.source.addEventListener('touchstart', begin, false);
       self.source.addEventListener('touchmove',  drag,  false);
       self.source.addEventListener('touchend',   end,   false);
+      window.addEventListener('touchmove', detectOut, false);
     }
   }
   self.detach = function()
@@ -37,12 +40,14 @@ var Dragger = function(init)
       self.source.removeEventListener('mousedown', begin);
       self.source.removeEventListener('mousemove', drag);
       self.source.removeEventListener('mouseup',   end);
+      window.removeEventListener('mousemove', detectOut, false);
     }
     else if(platform == "MOBILE")
     {
       self.source.removeEventListener('touchstart', begin);
       self.source.removeEventListener('touchmove',  drag);
       self.source.removeEventListener('touchend',   end);
+      window.removeEventListener('touchmove', detectOut, false);
     }
   }
 
@@ -69,6 +74,14 @@ var Dragger = function(init)
   function drag(evt)
   {
     doSetPosOnEvent(evt);
+
+    var r = self.source.getBoundingClientRect();
+    if(evt.clientX < r.left || evt.clientY < r.top || evt.clientX > r.right || evt.clientY > r.bottom)
+    {
+      end(evt);
+      return;
+    }
+
     for(var i = 0; i < dragging.length; i++)
     {
       callbackQueue.push(dragging[i].drag);
@@ -91,6 +104,13 @@ var Dragger = function(init)
       callbackQueue[i](evtQueue[i]);
     callbackQueue = [];
     evtQueue = [];
+  }
+
+  function detectOut(evt)
+  {
+    var r = self.source.getBoundingClientRect();
+    if(evt.clientX < r.left || evt.clientY < r.top || evt.clientX > r.right || evt.clientY > r.bottom)
+      end(evt);
   }
 
   self.attach();
