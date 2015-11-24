@@ -158,7 +158,7 @@ function ButtonBox(x,y,w,h,callback)
 
   self.click = function(evt)
   {
-    if(ptWithinObj(evt.doX, evt.doY, self)) self.hit();
+    self.hit();
   }
 
   self.hit = function()
@@ -202,11 +202,12 @@ function ToggleBox(x,y,w,h,val,callback)
   self.unpress = function(evt)
   {
     self.down = false;
+    self.toggle();
   }
 
   self.click = function(evt)
   {
-    if(ptWithinObj(evt.doX, evt.doY, self)) self.toggle();
+    self.toggle();
   }
 
   self.toggle = function()
@@ -476,6 +477,76 @@ function SmoothSliderSqrtBox(x,y,w,h,min_val,max_val,val,callback)
   self.print = function()
   {
     console.log("("+self.x+","+self.y+","+self.w+","+self.h+") min:"+self.min_val+" max:"+self.max_val+" v:"+self.val+" "+"");
+  }
+}
+
+function BinBox(x,y,w,h,drag_start_callback,drag_callback,drag_finish_callback,pull_callback,release_callback)
+//register to dragger & presser
+{
+  var self = this;
+  self.x = x;
+  self.y = y;
+  self.w = w;
+  self.h = h;
+
+  self.pressed = false;
+  self.dragging = false;
+
+  self.genable = true;
+
+  self.press = function(evt)
+  {
+    self.pressed = true;
+    if(self.dragging && self.genable)
+    {
+      self.genable = false;
+      pull_callback(evt);
+      drag_start_callback(evt);
+    }
+  }
+  self.unpress = function(evt)
+  {
+    self.pressed = false;
+    if(ptWithin(evt.doX, evt.doY, self.x, self.y, self.w, self.h))
+      release_callback();
+  }
+
+  //holds drag position in queue and forwards events
+  self.dragStart = function(evt)
+  {
+    self.dragging = true;
+    if(self.pressed && self.genable)
+    {
+      self.genable = false;
+      pull_callback(evt);
+      drag_start_callback(evt);
+    }
+  }
+  self.drag = function(evt)
+  {
+    drag_callback(evt);
+  }
+  self.dragFinish = function()
+  {
+    self.dragging = false;
+    drag_finish_callback();
+    self.genable = true;
+  }
+
+  self.draw = function(canv)
+  {
+    if(self.pressing) canv.context.strokeStyle = "#00F400";
+    else              canv.context.strokeStyle = "#000000";
+
+    canv.context.fillStyle = "#00F400";
+
+    canv.context.fillRect(self.x,self.y,self.w,self.h);
+    canv.context.strokeRect(self.x+0.5,self.y+0.5,self.w,self.h);
+  }
+
+  self.print = function()
+  {
+    console.log("("+self.x+","+self.y+","+self.w+","+self.h+") p:"+self.pressing+" "+"");
   }
 }
 
