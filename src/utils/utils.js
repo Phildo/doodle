@@ -80,6 +80,10 @@ function cdist(a,b)
   return dist;
 }
 
+function mapRange(from_min,from_max,from_pt,to_min,to_max)
+{
+  return ((from_pt-from_min)/(from_max-from_min))*(to_max-to_min)+to_min;
+}
 function mapPt(from,to,pt)
 {
   pt.x = ((pt.x-from.x)/from.w)*to.w+to.x;
@@ -114,5 +118,23 @@ var ptNear = function(ptx, pty, x, y, r)
   var h2 = (pty-y)*(pty-y);
   var d2 = r*r;
   return w2+h2 < d2;
+}
+
+var decToHex = function(dec, dig)
+{
+  var r = "";
+  dig--;
+  var mod = Math.pow(16,dig);
+
+  var index = ["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"];
+  for(; dig >= 0; dig--)
+  {
+    var v = Math.floor(dec/mod);
+    r += index[v];
+    dec -= Math.pow(16,dig)*v;
+    mod /= 16;
+  }
+
+  return r;
 }
 

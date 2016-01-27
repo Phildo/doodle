@@ -12,7 +12,8 @@ var Game = function(init)
 
   var stage = new Stage({width:init.width,height:init.height,container:init.container});
   var scenes = [new NullScene(self, stage), new LoadingScene(self, stage), new TestScene(self, stage), new GamePlayScene(self, stage)];
-  var currentScene = 0;
+  var cur_scene = 0;
+  var old_cur_scene = -1;
 
   self.begin = function()
   {
@@ -24,16 +25,21 @@ var Game = function(init)
   {
     requestAnimFrame(tick,stage.dispCanv.canvas);
     stage.clear();
-    scenes[currentScene].tick();
-    scenes[currentScene].draw();
-    stage.draw(); //blits from offscreen canvas to on screen one
+    scenes[cur_scene].tick();
+    scenes[cur_scene].draw();
+    if(old_cur_scene == cur_scene) //still in same scene- draw
+    {
+      scenes[cur_scene].draw();
+      stage.draw(); //blits from offscreen canvas to on screen one
+    }
+    old_cur_scene = cur_scene;
   };
 
   self.nextScene = function()
   {
-    scenes[currentScene].cleanup();
-    currentScene++;
-    scenes[currentScene].ready();
+    scenes[cur_scene].cleanup();
+    cur_scene++;
+    scenes[cur_scene].ready();
   };
 };
 
