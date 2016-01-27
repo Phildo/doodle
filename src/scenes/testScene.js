@@ -124,6 +124,8 @@ var TestScene = function(game, stage)
 
   var sliderboxtest = new SliderBox(0,10,100,20,0,100,50,function(n){});
   spacer.space_v(sliderboxtest);
+  sliderboxtest.slit_x = Math.round(sliderboxtest.x + sliderboxtest.w/20);
+  sliderboxtest.slit_w = Math.round(sliderboxtest.w - sliderboxtest.w/10);
 
   var particle = function()
   {
