@@ -5,6 +5,7 @@ var Canv = function(init)
   {
     width:640,
     height:320,
+    dpr_to_bspr:1,
     fillStyle:"#000000",
     strokeStyle:"#000000",
     lineWidth:2,
@@ -16,19 +17,20 @@ var Canv = function(init)
   doMapInitDefaults(init,init,default_init);
 
   self.canvas = document.createElement('canvas');
-  self.canvas.setAttribute('width', init.width);
-  self.canvas.setAttribute('height',init.height);
+  self.canvas.setAttribute('width', self.width*self.dpr_to_bspr);
+  self.canvas.setAttribute('height',self.height*self.dpr_to_bspr);
   self.canvas.addEventListener('mousedown',function(evt){ evt.preventDefault(); },false);
   self.canvas.addEventListener('touchstart',function(evt){ evt.preventDefault(); },false);
 
   self.context = self.canvas.getContext('2d');
 
-  self.context.fillStyle   = init.fillStyle;
-  self.context.strokeStyle = init.strokeStyle;
-  self.context.lineWidth   = init.lineWidth;
-  self.context.font        = init.font;
+  self.context.fillStyle   = self.fillStyle;
+  self.context.strokeStyle = self.strokeStyle;
+  self.context.lineWidth   = self.lineWidth;
+  self.context.font        = self.font;
+  self.context.scale(self.dpr_to_bspr, self.dpr_to_bspr);
 
-  self.context.imageSmoothingEnabled = init.smoothing;
+  self.context.imageSmoothingEnabled = self.smoothing;
 };
 Canv.prototype.clear = function()
 {
