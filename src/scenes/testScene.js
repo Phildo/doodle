@@ -13,6 +13,7 @@ var TestScene = function(game, stage)
   var presser;
   var keyer;
   var particler;
+  var placer;
 
   var spacer = new (function()
   {
@@ -214,6 +215,11 @@ var TestScene = function(game, stage)
     drawer.register(particler);
     ticker.register(particler);
     setTimeout(function(){ ticker.unregister(particler); }, 10000);
+
+    placer = new Placer({}, 100,100,100,100, stage.drawCanv);
+    drawer.register(placer);
+    dragger.register(placer);
+    clicker.register(placer);
   };
 
   self.tick = function()
