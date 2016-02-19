@@ -86,13 +86,6 @@ function clerp(s,e,t)
   return lerp(s,e,t)%(Math.PI*2);
 }
 
-function dist(a,b)
-{
-  var x = b.x-a.x;
-  var y = b.y-a.y;
-  return Math.sqrt(x*x+y*y);
-}
-
 function cdist(a,b)
 {
   while(a < 0) a += Math.PI*2;
@@ -227,18 +220,6 @@ var polarToCart = function(polar,cart)
   cart.y = Math.sin(polar.dir)*polar.len;
 }
 
-var fviz = function(f,n)
-{
-  if(n == undefined) n = 2;
-  n = Math.pow(10,n);
-  return Math.round(f*n)/n;
-}
-
-var randR = function(f,t)
-{
-  return lerp(f,t,Math.random());
-}
-
 //short name- will be used often to place elements by percent, while guaranteeing integer results
 var p    = function(percent, of) { return Math.floor(percent * of); }
 var invp = function(      n, of) { return n/of; }
@@ -250,23 +231,37 @@ var setBox = function(obj, x,y,w,h)
   obj.h = h;
 }
 
-function wdist(a,b)
+var queryRectCollide = function(a,b)
 {
-  var x = b.wx-a.wx;
-  var y = b.wy-a.wy;
-  return Math.sqrt(x*x+y*y);
+  return a.x < b.x+b.w && b.x < a.x+a.w && a.y < b.y+b.h && b.y < a.y+a.h;
 }
 
-var GenIcon = function(w,h)
+var screenSpace = function(cam, canv, obj)
 {
-  var icon = document.createElement('canvas');
-  icon.width = w || 10;
-  icon.height = h || 10;
-  icon.context = icon.getContext('2d');
-  icon.context.fillStyle = "#000000";
-  icon.context.strokeStyle = "#000000";
-  icon.context.textAlign = "center";
+  //assumng xywh counterparts in world space (wx,wy,ww,wh,etc...)
+  //where wx,wy is *center* of obj and cam
+  //so cam.wx = 0; cam.ww = 1; would be a cam centered at the origin with visible range from -0.5 to 0.5
+  //output xywh assume x,y is top left (ready to be 'blit' via canvas api)
+  obj.w = (obj.ww/cam.ww)*canv.width;
+  obj.h = (obj.wh/cam.wh)*canv.height;
+  obj.x = (((( obj.wx-obj.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
+  obj.y = ((((-obj.wy-obj.wh/2)-cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
+}
 
-  return icon;
+var queryRectCollide = function(a,b)
+{
+  return a.x < b.x+b.w && b.x < a.x+a.w && a.y < b.y+b.h && b.y < a.y+a.h;
+}
+
+var screenSpace = function(cam, canv, obj)
+{
+  //assumng xywh counterparts in world space (wx,wy,ww,wh,etc...)
+  //where wx,wy is *center* of obj and cam
+  //so cam.wx = 0; cam.ww = 1; would be a cam centered at the origin with visible range from -0.5 to 0.5
+  //output xywh assume x,y is top left (ready to be 'blit' via canvas api)
+  obj.w = (obj.ww/cam.ww)*canv.width;
+  obj.h = (obj.wh/cam.wh)*canv.height;
+  obj.x = (((( obj.wx-obj.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
+  obj.y = ((((-obj.wy-obj.wh/2)-cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
 }
 
