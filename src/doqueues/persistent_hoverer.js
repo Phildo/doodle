@@ -15,6 +15,11 @@ var PersistentHoverer = function(init)
   var hoverEvtQueue = [];
   var nothoverCallbackQueue = [];
   var nothoverEvtQueue = [];
+  var queues = {};
+  queues.hoverCallbackQueue = hoverCallbackQueue;
+  queues.hoverEvtQueue = hoverEvtQueue;
+  queues.nothoverCallbackQueue = nothoverCallbackQueue;
+  queues.nothoverEvtQueue = nothoverEvtQueue;
   self.register = function(hoverable) { hoverables.push(hoverable); nothovering.push(hoverable); }
   self.unregister = function(hoverable) 
   {
@@ -45,10 +50,13 @@ var PersistentHoverer = function(init)
       ; //no hover on mobile, dummy
   }
 
-
   function hover(evt)
   {
     doSetPosOnEvent(evt);
+    self.injectHover(evt);
+  }
+  self.injectHover = function(evt)
+  {
     var r = self.source.getBoundingClientRect();
 
     if(evt.clientX < r.left || evt.clientY < r.top || evt.clientX > r.right || evt.clientY > r.bottom)
@@ -120,6 +128,21 @@ var PersistentHoverer = function(init)
 
     for(var i = 0; i < nothoverCallbackQueue.length; i++)
       nothoverCallbackQueue[i](nothoverEvtQueue[i]);
+    nothoverCallbackQueue = [];
+    nothoverEvtQueue = [];
+  }
+  self.requestManualFlush = function()
+  {
+    queues.hoverCallbackQueue = hoverCallbackQueue;
+    queues.hoverEvtQueue = hoverEvtQueue;
+    queues.nothoverCallbackQueue = nothoverCallbackQueue;
+    queues.nothoverEvtQueue = nothoverEvtQueue;
+    return queues;
+  }
+  self.manualFlush = function()
+  {
+    hoverCallbackQueue = [];
+    hoverEvtQueue = [];
     nothoverCallbackQueue = [];
     nothoverEvtQueue = [];
   }

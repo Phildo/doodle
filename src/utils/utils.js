@@ -86,6 +86,13 @@ function clerp(s,e,t)
   return lerp(s,e,t)%(Math.PI*2);
 }
 
+function dist(a,b)
+{
+  var x = b.x-a.x;
+  var y = b.y-a.y;
+  return Math.sqrt(x*x+y*y);
+}
+
 function cdist(a,b)
 {
   while(a < 0) a += Math.PI*2;
@@ -220,6 +227,18 @@ var polarToCart = function(polar,cart)
   cart.y = Math.sin(polar.dir)*polar.len;
 }
 
+var fviz = function(f,n)
+{
+  if(n == undefined) n = 2;
+  n = Math.pow(10,n);
+  return Math.round(f*n)/n;
+}
+
+var randR = function(f,t)
+{
+  return lerp(f,t,Math.random());
+}
+
 //short name- will be used often to place elements by percent, while guaranteeing integer results
 var p    = function(percent, of) { return Math.floor(percent * of); }
 var invp = function(      n, of) { return n/of; }
@@ -229,5 +248,25 @@ var setBox = function(obj, x,y,w,h)
   obj.y = y;
   obj.w = w;
   obj.h = h;
+}
+
+function wdist(a,b)
+{
+  var x = b.wx-a.wx;
+  var y = b.wy-a.wy;
+  return Math.sqrt(x*x+y*y);
+}
+
+var GenIcon = function(w,h)
+{
+  var icon = document.createElement('canvas');
+  icon.width = w || 10;
+  icon.height = h || 10;
+  icon.context = icon.getContext('2d');
+  icon.context.fillStyle = "#000000";
+  icon.context.strokeStyle = "#000000";
+  icon.context.textAlign = "center";
+
+  return icon;
 }
 
