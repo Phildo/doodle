@@ -60,6 +60,12 @@ function doSetPosOnEvent(evt)
   }
 }
 
+function clamp(min,max,v)
+{
+  if(v < min) v = min; if(v > max) v = max;
+  return v;
+}
+
 function feq(f1,f2,e)
 {
   return (f1 < f2+e && f1 > f2-e);
@@ -134,6 +140,14 @@ var ptNear = function(ptx, pty, x, y, r)
   var h2 = (pty-y)*(pty-y);
   var d2 = r*r;
   return w2+h2 < d2;
+}
+var worldPtWithin = function(ptx, pty, wx, wy, ww, wh)
+{
+  return (ptx >= wx-(ww/2) && ptx <= wx+(ww/2) && pty >= wy-(wh/2) && pty <= wy+(wh/2));
+}
+var worldPtWithinObj = function(ptx, pty, obj)
+{
+  return worldPtWithin(ptx, pty, obj.wx, obj.wy, obj.ww, obj.wh);
 }
 
 var decToHex = function(dec, dig)
@@ -246,5 +260,25 @@ var screenSpace = function(cam, canv, obj)
   obj.h = (obj.wh/cam.wh)*canv.height;
   obj.x = (((( obj.wx-obj.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
   obj.y = ((((-obj.wy-obj.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
+}
+
+function wdist(a,b)
+{
+  var x = b.wx-a.wx;
+  var y = b.wy-a.wy;
+  return Math.sqrt(x*x+y*y);
+}
+
+var GenIcon = function(w,h)
+{
+  var icon = document.createElement('canvas');
+  icon.width = w || 10;
+  icon.height = h || 10;
+  icon.context = icon.getContext('2d');
+  icon.context.fillStyle = "#000000";
+  icon.context.strokeStyle = "#000000";
+  icon.context.textAlign = "center";
+
+  return icon;
 }
 
