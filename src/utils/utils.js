@@ -60,9 +60,22 @@ function doSetPosOnEvent(evt)
   }
 }
 
-function clamp(min,max,v)
+var fdisp = function(f,n) //formats float for display (from 8.124512 to 8.12)
 {
-  if(v < min) v = min; if(v > max) v = max;
+  if(n == undefined) n = 2;
+  n = Math.pow(10,n);
+  return Math.round(f*n)/n;
+}
+
+var randR = function(f,t)
+{
+  return lerp(f,t,Math.random());
+}
+
+function clamp(a,b,v)
+{
+  if(v < a) return a;
+  if(v > b) return b;
   return v;
 }
 
@@ -262,6 +275,13 @@ var screenSpace = function(cam, canv, obj)
   obj.y = ((((-obj.wy-obj.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
 }
 
+function dist(a,b)
+{
+  var x = b.x-a.x;
+  var y = b.y-a.y;
+  return Math.sqrt(x*x+y*y);
+}
+
 function wdist(a,b)
 {
   var x = b.wx-a.wx;
@@ -280,5 +300,35 @@ var GenIcon = function(w,h)
   icon.context.textAlign = "center";
 
   return icon;
+}
+
+function randIntBelow(n)
+{
+  return Math.floor(Math.random()*n);
+}
+
+function rand()
+{
+  return Math.random();
+}
+function rand0()
+{
+  return (Math.random()*2)-1;
+}
+
+var randR = function(f,t)
+{
+  return lerp(f,t,Math.random());
+}
+
+var SeededRand = function(s)
+{
+  var self = this;
+  self.seed = s;
+  self.next = function()
+  {
+  var x = Math.sin(self.seed++) * 10000;
+  return x - Math.floor(x);
+  }
 }
 
