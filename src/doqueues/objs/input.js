@@ -101,7 +101,6 @@ function NumberBox(x,y,w,h,val,delta,callback)
   }
   self.dragFinish = function()
   {
-    evt.hit_ui = true;
     if(self.down) self.highlit = !self.highlit;
     self.down = false;
   }
