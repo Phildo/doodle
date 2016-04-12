@@ -1,6 +1,11 @@
 var LoadingScene = function(game, stage)
 {
   var self = this;
+
+  var canv = stage.drawCanv;
+  var canvas = canv.canvas;
+  var ctx = canv.context;
+
   var pad;
   var barw;
   var progress;

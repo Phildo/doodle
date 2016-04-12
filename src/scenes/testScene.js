@@ -1,6 +1,11 @@
 var TestScene = function(game, stage)
 {
   var self = this;
+
+  var canv = stage.drawCanv;
+  var canvas = canv.canvas;
+  var ctx = canv.context;
+
   var assetter;
   var dbugger; //'debugger' is a keyword... (why.)
   var drawer;
