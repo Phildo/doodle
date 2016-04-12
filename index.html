@@ -1,5 +1,12 @@
 <html>
 <head>
+<style>
+div,body
+{
+  margin:0px;
+  padding:0px;
+}
+</style>
 <script type='text/javascript' src='src/config.js'></script>
 <script type='text/javascript' src='src/utils/utils.js'></script>
 <script type='text/javascript' src='src/utils/webgl-utils.js'></script>
@@ -34,8 +41,21 @@ var g;
 var d;
 function begin()
 {
-  d = new Debugger({source:document.getElementById("debug_div")});
-  g = new Game({width:640,height:320,container:"stage_container"});
+  var w = 640;
+  var h = 320;
+  var content          = document.getElementById("content");
+  var stage_container  = document.getElementById("stage_container");
+  var shadow_container = document.getElementById("shadow_container");
+  var shadow           = document.getElementById("shadow");
+  var debug_div        = document.getElementById("debug_div");
+  content.style.width          = w; content.style.height          = h;
+  stage_container.style.width  = w; stage_container.style.height  = h;
+  shadow_container.style.width = w; shadow_container.style.height = h;
+  shadow.style.width           = w;
+  debug_div.style.width        = w; debug_div.style.height        = w;
+
+  d = new Debugger({source:debug_div});
+  g = new Game({width:w,height:h,container:"stage_container"});
   g.begin();
 }
 window.addEventListener('touchstart', function(e){ e.preventDefault() }); //prevent browser from doing anything funny
@@ -43,14 +63,14 @@ window.addEventListener("load",begin,false);
 </script>
 
 </head>
-<body>
+<body style="width:100%;">
 
-<div id="content" style="display:block; margin:50px auto; width:640px; position:relative;">
-  <div id="stage_container" style="display:block; width:640px; height:320px; position:absolute; top:0px; left:0px; user-select:none;"> </div>
-  <div id="shadow_container" style="display:block; width:640px; position:absolute; left:0px; top:322px; pointer-events:none; user-select:none;">
+<div id="content" style="margin:50px auto; position:relative;">
+  <div id="stage_container" style="position:absolute; top:0px; left:0px; user-select:none;"> </div>
+  <div id="shadow_container" style="position:absolute; left:0px; top:322px; pointer-events:none; user-select:none;">
     <img id="shadow" src="assets/shadow.png" style="display:block; pointer-events:none; user-select:none;"/>
   </div>
-  <div id="debug_div" style="display:block; width:640px; height:320px; position:absolute; top:0px; left:0px; pointer-events:none; user-select:none;"> </div>
+  <div id="debug_div" style="display:block; position:absolute; top:0px; left:0px; pointer-events:none; user-select:none;"> </div>
 </div>
 
 </body>
