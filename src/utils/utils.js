@@ -344,11 +344,14 @@ var rand = Math.random;
 var round = Math.round;
 var floor = Math.floor;
 var ceil = Math.ceil;
+var abs = Math.abs;
 var min = Math.min;
 var max = Math.max;
 var sqrt = Math.sqrt;
 var sin = Math.sin;
 var cos = Math.cos;
+var psin = function(t) { return (Math.sin(t)+1)/2; }
+var pcos = function(t) { return (Math.cos(t)+1)/2; }
 var atan2 = Math.atan2;
 var pi = Math.PI;
 var twopi = 2*pi;
@@ -363,5 +366,39 @@ var SeededRand = function(s)
   var x = Math.sin(self.seed++) * 10000;
   return x - Math.floor(x);
   }
+}
+
+function noop(){}
+function ffunc(){return false;}
+function tfunc(){return true;}
+
+function drawArrow(canv,sx,sy,ex,ey,w)
+{
+  var dx = ex-sx;
+  var dy = ey-sy;
+  var dd = Math.sqrt(dx*dx+dy*dy);
+  var ox = -dy;
+  var oy = dx;
+  var od = Math.sqrt(ox*ox+oy*oy);
+  var ox = (ox/od)*w;
+  var oy = (oy/od)*w;
+  canv.context.beginPath();
+  canv.context.moveTo(sx,sy);
+  canv.context.lineTo(ex,ey);
+  canv.context.lineTo(sx+(dx/dd*(dd-w))+ox,sy+(dy/dd*(dd-w))+oy);
+  canv.context.moveTo(ex,ey);
+  canv.context.lineTo(sx+(dx/dd*(dd-w))-ox,sy+(dy/dd*(dd-w))-oy);
+  canv.context.stroke();
+}
+
+function drawAroundDecimal(canv,x,y,val,prepend,append)
+{
+  var macro = floor(val);
+  var vstring = val+"";
+  var micro = vstring.substring(vstring.indexOf(".")+1);
+  canv.context.textAlign = "right";
+  canv.context.fillText(prepend+macro+".",x,y);
+  canv.context.textAlign = "left";
+  canv.context.fillText(micro+append,x,y);
 }
 
