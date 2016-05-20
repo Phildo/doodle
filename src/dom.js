@@ -166,5 +166,20 @@ var BottomMessageWrangler = function()
     text_el.innerHTML = lines[cur_line];
     visa = 0.01;
   }
+
+  self.dismiss = function()
+  {
+    if(c) c();
+    c = undefined;
+    visa = -0.01;
+  }
+  self.immediateDismiss = function()
+  {
+    if(c) c();
+    c = undefined;
+    visa = 0;
+    visd = 0;
+    vis = 0;
+  }
 }
 
