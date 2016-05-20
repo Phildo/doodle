@@ -313,6 +313,18 @@ function wdist(a,b)
   var y = b.wy-a.wy;
   return Math.sqrt(x*x+y*y);
 }
+function fdistsqr(x0,y0,x1,y1)
+{
+  var x = x1-x0;
+  var y = y1-y0;
+  return x*x+y*y;
+}
+function fdist(x0,y0,x1,y1)
+{
+  var x = x1-x0;
+  var y = y1-y0;
+  return Math.sqrt(x*x+y*y);
+}
 
 var GenIcon = function(w,h)
 {
@@ -331,6 +343,10 @@ function randIntBelow(n)
 {
   return Math.floor(Math.random()*n);
 }
+function randBool()
+{
+  return randIntBelow(2);
+}
 function rand0()
 {
   return (Math.random()*2)-1;
@@ -347,6 +363,7 @@ var ceil = Math.ceil;
 var abs = Math.abs;
 var min = Math.min;
 var max = Math.max;
+var pow = Math.pow;
 var sqrt = Math.sqrt;
 var sin = Math.sin;
 var cos = Math.cos;
@@ -385,8 +402,8 @@ function drawArrow(canv,sx,sy,ex,ey,w)
   canv.context.beginPath();
   canv.context.moveTo(sx,sy);
   canv.context.lineTo(ex,ey);
-  canv.context.lineTo(sx+(dx/dd*(dd-w))+ox,sy+(dy/dd*(dd-w))+oy);
-  canv.context.moveTo(ex,ey);
+  canv.context.moveTo(sx+(dx/dd*(dd-w))+ox,sy+(dy/dd*(dd-w))+oy);
+  canv.context.lineTo(ex,ey);
   canv.context.lineTo(sx+(dx/dd*(dd-w))-ox,sy+(dy/dd*(dd-w))-oy);
   canv.context.stroke();
 }
