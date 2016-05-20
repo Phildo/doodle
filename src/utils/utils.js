@@ -7,88 +7,12 @@
 *
 */
 
-//maps attributes found in defaults from init onto obj, falling back to defaults value if not present in init
-var doMapInitDefaults = function(obj, init, defaults)
-{
-  var attribs = Object.keys(defaults);
-  for(var i = 0; i < attribs.length; i++)
-  {
-    var k = attribs[i];
-    obj[k] = init.hasOwnProperty(k) ? init[k] : defaults[k];
-  }
-}
-
-//sets doX and doY as x/y offset into the object listening for the event
-function doSetPosOnEvent(evt)
-{
-  if(evt.offsetX != undefined)
-  {
-    evt.doX = evt.offsetX;
-    evt.doY = evt.offsetY;
-  }
-  else if(evt.touches != undefined && evt.touches[0] != undefined)
-  {
-    //unfortunately, seems necessary...
-    var t = evt.touches[0].target;
-
-    var box = t.getBoundingClientRect();
-    var body = document.body;
-    var docEl = document.documentElement;
-
-    var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
-    var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
-
-    var clientTop = docEl.clientTop || body.clientTop || 0;
-    var clientLeft = docEl.clientLeft || body.clientLeft || 0;
-
-    var top  = box.top +  scrollTop - clientTop;
-    var left = box.left + scrollLeft - clientLeft;
-
-    evt.doX = evt.touches[0].pageX-left;
-    evt.doY = evt.touches[0].pageY-top;
-
-  }
-  else if(evt.layerX != undefined && evt.originalTarget != undefined)
-  {
-    evt.doX = evt.layerX-evt.originalTarget.offsetLeft;
-    evt.doY = evt.layerY-evt.originalTarget.offsetTop;
-  }
-  else //give up because javascript is terrible
-  {
-    evt.doX = 0;
-    evt.doY = 0;
-  }
-}
-
-var fdisp = function(f,n) //formats float for display (from 8.124512 to 8.12)
-{
-  if(n == undefined) n = 2;
-  n = Math.pow(10,n);
-  return Math.round(f*n)/n;
-}
-
-function clamp(a,b,v)
-{
-  if(v < a) return a;
-  if(v > b) return b;
-  return v;
-}
-
-function feq(f1,f2,e)
-{
-  return (f1 < f2+e && f1 > f2-e);
-}
-
-function lerp(s,e,t)
-{
-  return s+((e-s)*t);
-}
-
-function invlerp(s,e,v)
-{
-  return (v-s)/(e-s);
-}
-
+//math (raw)
+function mapVal(from_min, from_max, to_min, to_max, v) { return ((v-from_min)/(from_max-from_min))*(to_max-to_min)+to_min; }
+function clamp(a,b,v) { if(v < a) return a; if(v > b) return b; return v; }
+function eq(a,b,e) { return (a < b+e && a > b-e); }
+function lerp(s,e,t) { return s+((e-s)*t); }
+function invlerp(s,e,v) { return (v-s)/(e-s); }
 function clerp(s,e,t)
 {
   while(s < 0) s += Math.PI*2;
@@ -99,7 +23,6 @@ function clerp(s,e,t)
 
   return lerp(s,e,t)%(Math.PI*2);
 }
-
 function cdist(a,b)
 {
   while(a < 0) a += Math.PI*2;
@@ -109,11 +32,48 @@ function cdist(a,b)
 
   return dist;
 }
-
-function mapVal(from_min, from_max, to_min, to_max, v)
+function distsqr(ax,ay,bx,by)
 {
-  return ((v-from_min)/(from_max-from_min))*(to_max-to_min)+to_min;
+  var x = bx-ax;
+  var y = by-ay;
+  return x*x+y*y;
 }
+function dist(ax,ay,bx,by)
+{
+  var x = bx-ax;
+  var y = by-ay;
+  return Math.sqrt(x*x+y*y);
+}
+function randIntBelow(n) { return Math.floor(Math.random()*n); }
+function randBool() { return randIntBelow(2); }
+function rand0() { return (Math.random()*2)-1; }
+var randR = function(s,e) { return lerp(s,e,Math.random()); }
+//because the Math namespace is probably unnecessary for our purposes
+var rand = Math.random;
+var round = Math.round;
+var floor = Math.floor;
+var ceil = Math.ceil;
+var abs = Math.abs;
+var min = Math.min;
+var max = Math.max;
+var pow = Math.pow;
+var sqrt = Math.sqrt;
+var sin = Math.sin;
+var cos = Math.cos;
+var psin = function(t) { return (Math.sin(t)+1)/2; }
+var pcos = function(t) { return (Math.cos(t)+1)/2; }
+var atan2 = Math.atan2;
+var pi = Math.PI;
+var twopi = 2*pi;
+var halfpi = pi/2;
+
+var fdisp = function(f,n) //formats float for display (from 8.124512 to 8.12)
+{
+  if(n == undefined) n = 2;
+  n = Math.pow(10,n);
+  return Math.round(f*n)/n;
+}
+
 function mapPt(from,to,pt)
 {
   pt.x = ((pt.x-from.x)/from.w)*to.w+to.x;
@@ -129,25 +89,19 @@ function mapRect(from,to,rect)
   return rect;
 }
 
-var ptWithin = function(ptx, pty, x, y, w, h)
-{
-  return (ptx >= x && ptx <= x+w && pty >= y && pty <= y+h);
-}
+//collide (raw)
+var ptWithin = function(x,y,w,h,ptx,pty) { return (ptx >= x && ptx <= x+w && pty >= y && pty <= y+h); }
+var ptNear = function(x,y,r,ptx,pty) { var dx = ptx-x; var dy = pty-y; return (dx*dx+dy*dy) < r*r; }
+var rectCollide = function(ax,ay,aw,wh,bx,by,bw,bh) { return ax < bx+bw && bx < ax+aw && ay < by+bh && by < ay+ah; }
+
 var ptWithinObj = function(ptx, pty, obj)
 {
-  return ptWithin(ptx, pty, obj.x, obj.y, obj.w, obj.h);
+  return (ptx >= obj.x && ptx <= obj.x+obj.w && pty >= obj.y && pty <= obj.y+obj.h);
 }
 var objWithinObj = function(obja, objb)
 {
   console.log("not done!");
   return false;
-}
-var ptNear = function(ptx, pty, x, y, r)
-{
-  var w2 = (ptx-x)*(ptx-x);
-  var h2 = (pty-y)*(pty-y);
-  var d2 = r*r;
-  return w2+h2 < d2;
 }
 var worldPtWithin = function(ptx, pty, wx, wy, ww, wh)
 {
@@ -155,9 +109,10 @@ var worldPtWithin = function(ptx, pty, wx, wy, ww, wh)
 }
 var worldPtWithinObj = function(ptx, pty, obj)
 {
-  return worldPtWithin(ptx, pty, obj.wx, obj.wy, obj.ww, obj.wh);
+  return (ptx >= obj.wx-(obj.ww/2) && ptx <= obj.wx+(obj.ww/2) && pty >= obj.wy-(obj.wh/2) && pty <= obj.wy+(obj.wh/2));
 }
 
+//conversions
 var decToHex = function(dec, dig)
 {
   var r = "";
@@ -253,11 +208,7 @@ var setBox = function(obj, x,y,w,h)
   obj.h = h;
 }
 
-var queryRectCollide = function(a,b)
-{
-  return a.x < b.x+b.w && b.x < a.x+a.w && a.y < b.y+b.h && b.y < a.y+a.h;
-}
-
+//camera
 var screenSpace = function(cam, canv, obj)
 {
   //assumng xywh counterparts in world space (wx,wy,ww,wh,etc...)
@@ -313,18 +264,6 @@ function wdist(a,b)
   var y = b.wy-a.wy;
   return Math.sqrt(x*x+y*y);
 }
-function fdistsqr(x0,y0,x1,y1)
-{
-  var x = x1-x0;
-  var y = y1-y0;
-  return x*x+y*y;
-}
-function fdist(x0,y0,x1,y1)
-{
-  var x = x1-x0;
-  var y = y1-y0;
-  return Math.sqrt(x*x+y*y);
-}
 
 var GenIcon = function(w,h)
 {
@@ -339,40 +278,6 @@ var GenIcon = function(w,h)
   return icon;
 }
 
-function randIntBelow(n)
-{
-  return Math.floor(Math.random()*n);
-}
-function randBool()
-{
-  return randIntBelow(2);
-}
-function rand0()
-{
-  return (Math.random()*2)-1;
-}
-var randR = function(f,t)
-{
-  return lerp(f,t,Math.random());
-}
-//because the Math namespace is probably unnecessary for our purposes
-var rand = Math.random;
-var round = Math.round;
-var floor = Math.floor;
-var ceil = Math.ceil;
-var abs = Math.abs;
-var min = Math.min;
-var max = Math.max;
-var pow = Math.pow;
-var sqrt = Math.sqrt;
-var sin = Math.sin;
-var cos = Math.cos;
-var psin = function(t) { return (Math.sin(t)+1)/2; }
-var pcos = function(t) { return (Math.cos(t)+1)/2; }
-var atan2 = Math.atan2;
-var pi = Math.PI;
-var twopi = 2*pi;
-var halfpi = pi/2;
 
 var SeededRand = function(s)
 {
