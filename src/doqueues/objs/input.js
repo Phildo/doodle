@@ -96,7 +96,7 @@ function NumberBox(x,y,w,h,val,delta,callback)
     self.number = validateNum(self.number + self.deltaX*self.delta);
     self.value = ""+self.number;
 
-    self.down = ptWithinObj(evt.doX, evt.doY, self);
+    self.down = ptWithinObj(self, evt.doX, evt.doY);
     callback(self.number);
   }
   self.dragFinish = function()
@@ -532,7 +532,7 @@ function BinBox(x,y,w,h,drag_start_callback,drag_callback,drag_finish_callback,p
   {
     evt.hit_ui = true;
     self.pressed = false;
-    if(ptWithin(evt.doX, evt.doY, self.x, self.y, self.w, self.h))
+    if(ptWithinObj(self, evt.doX, evt.doY))
       release_callback();
   }
 
