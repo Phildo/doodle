@@ -11,13 +11,20 @@ var LoadingScene = function(game, stage)
   var progress;
   var canv = stage.drawCanv;
 
-  var imagesloaded = 0;
+  var n_loading_imgs_loaded = 0;
+  var loading_img_srcs = [];
+  var loading_imgs = [];
+  var n_imgs_loaded = 0;
   var img_srcs = [];
-  var images = [];
+  var imgs = [];
 
+  var loadingImageLoaded = function()
+  {
+    n_loading_imgs_loaded++;
+  };
   var imageLoaded = function()
   {
-    imagesloaded++;
+    n_imgs_loaded++;
   };
 
   self.ready = function()
@@ -28,23 +35,33 @@ var LoadingScene = function(game, stage)
     canv.context.fillStyle = "#000000";
     canv.context.fillText(".",0,0);// funky way to encourage any custom font to load
 
-    //put strings in 'img_srcs' as separate array to get "static" count
-    /*
-    img_srcs.push("assets/man.png");
-    */
+    //put asset paths in loading_img_srcs (for assets used on loading screen itself)
+    //loading_img_srcs.push("assets/man.png");
+    for(var i = 0; i < loading_img_srcs.length; i++)
+    {
+      loading_imgs[i] = new Image();
+      loading_imgs[i].onload = loadingImageLoaded;
+      loading_imgs[i].src = loading_img_srcs[i];
+    }
+    loadingImageLoaded(); //call once to prevent 0/0 != 100% bug
+
+    //put asset paths in img_srcs
+    //img_srcs.push("assets/man.png");
     for(var i = 0; i < img_srcs.length; i++)
     {
-      images[i] = new Image();
-      images[i].onload = imageLoaded;
-      images[i].src = img_srcs[i];
+      imgs[i] = new Image();
+      imgs[i].onload = imageLoaded;
+      imgs[i].src = img_srcs[i];
     }
     imageLoaded(); //call once to prevent 0/0 != 100% bug
   };
 
   self.tick = function()
   {
-    var p = imagesloaded/(img_srcs.length+1);
+    //note- assets used on loading screen itself NOT included in wait
+    var p = n_imgs_loaded/(img_srcs.length+1);
     if(progress <= p) progress += 0.01;
+    //if(progress >= 1.0) game.nextScene(); //use this to wait for bar
     if(p >= 1.0) game.nextScene();
   };
 
@@ -52,14 +69,17 @@ var LoadingScene = function(game, stage)
   {
     canv.context.fillRect(pad,canv.height/2,progress*barw,1);
     canv.context.strokeRect(pad-1,(canv.height/2)-1,barw+2,3);
+
+    var p = n_loading_imgs_loaded/(loading_img_srcs.length+1);
+    if(p >= 1.0) //assets used in loading screen itself have been loaded
+    {
+      //do any special drawing here
+    }
   };
 
   self.cleanup = function()
   {
-    progress = 0;
-    imagesloaded = 0;
-    images = [];//just used them to cache assets in browser; let garbage collector handle 'em.
-    canv.context.fillStyle = "#FFFFFF";
-    canv.context.fillRect(0,0,canv.width,canv.height);
+    imgs = [];//just used them to cache assets in browser; let garbage collector handle 'em.
+    loading_imgs = [];//just used them to cache assets in browser; let garbage collector handle 'em.
   };
 };
