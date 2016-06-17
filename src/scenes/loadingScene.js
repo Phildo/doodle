@@ -35,7 +35,7 @@ var LoadingScene = function(game, stage)
     for(var i = 0; i < img_srcs.length; i++)
     {
       images[i] = new Image();
-      images[i].onload = imageLoaded; 
+      images[i].onload = imageLoaded;
       images[i].src = img_srcs[i];
     }
     imageLoaded(); //call once to prevent 0/0 != 100% bug
@@ -43,8 +43,9 @@ var LoadingScene = function(game, stage)
 
   self.tick = function()
   {
-    if(progress <= imagesloaded/(img_srcs.length+1)) progress += 100;//0.01;
-    if(progress >= 1.0) game.nextScene();
+    var p = imagesloaded/(img_srcs.length+1);
+    if(progress <= p) progress += 0.01;
+    if(p >= 1.0) game.nextScene();
   };
 
   self.draw = function()

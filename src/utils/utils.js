@@ -324,6 +324,13 @@ function drawAroundDecimal(canv,x,y,val,prepend,append)
   canv.context.fillText(micro+append,x,y);
 }
 
+var space = function(minv,maxv,obv,nobs,obi)
+{
+  var w = maxv-minv;
+  var pad = (w-(nobs*obv))/(nobs+1);
+  return minv+pad+(obv+pad)*obi;
+}
+
 var textToLines = function(canv, font, width, text)
 {
   var lines = [];
