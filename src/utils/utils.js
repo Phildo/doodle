@@ -103,7 +103,7 @@ function mapRect(from,to,rect)
 //collide (raw)
 var ptWithin = function(x,y,w,h,ptx,pty) { return (ptx >= x && ptx <= x+w && pty >= y && pty <= y+h); }
 var ptNear = function(x,y,r,ptx,pty) { var dx = ptx-x; var dy = pty-y; return (dx*dx+dy*dy) < r*r; }
-var rectCollide = function(ax,ay,aw,wh,bx,by,bw,bh) { return ax < bx+bw && bx < ax+aw && ay < by+bh && by < ay+ah; }
+var rectCollide = function(ax,ay,aw,ah,bx,by,bw,bh) { return ax < bx+bw && bx < ax+aw && ay < by+bh && by < ay+ah; }
 
 var ptWithinObj = function(obj,ptx,pty)
 {
@@ -222,7 +222,7 @@ var setBox = function(obj, x,y,w,h)
 //camera
 var screenSpaceX = function(cam, canv, x) { return (((( x)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;  }
 var screenSpaceY = function(cam, canv, y) { return ((((-y)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height; }
-var screenSpace = function(cam, canv, obj)
+var screenSpace  = function(cam, canv, obj)
 {
   //assumng xywh counterparts in world space (wx,wy,ww,wh,etc...)
   //where wx,wy is *center* of obj and cam
@@ -235,10 +235,17 @@ var screenSpace = function(cam, canv, obj)
 }
 var worldSpaceX = function(cam, canv, x) { return ((x/canv.width) -0.5)* cam.ww + cam.wx; }
 var worldSpaceY = function(cam, canv, y) { return ((y/canv.height)-0.5)*-cam.wh + cam.wy; }
+var worldSpaceW = function(cam, canv, w) { return (w/canv.width)*cam.ww; }
+var worldSpaceH = function(cam, canv, h) { return (h/canv.height)*cam.wh; }
+var worldSpaceCoords = function(cam, canv, obj) //opposite of screenspace, doesn't alter w/h (to preserve fp precision)
+{
+  obj.wx = (((obj.x/canv.width) -0.5)* cam.ww + cam.wx)+obj.ww/2;
+  obj.wy = (((obj.y/canv.height)-0.5)*-cam.wh + cam.wy)-obj.wh/2;
+}
 var worldSpace = function(cam, canv, obj) //opposite of screenspace
 {
-  obj.wx = ((obj.x/canv.width) -0.5)* cam.ww + cam.wx;
-  obj.wy = ((obj.y/canv.height)-0.5)*-cam.wh + cam.wy;
+  obj.wx = (((obj.x/canv.width) -0.5)* cam.ww + cam.wx)+obj.ww/2;
+  obj.wy = (((obj.y/canv.height)-0.5)*-cam.wh + cam.wy)-obj.wh/2;
   obj.ww = (obj.w/canv.width)*cam.ww;
   obj.wh = (obj.h/canv.height)*cam.wh;
 }
@@ -404,5 +411,55 @@ var textToLines = function(canv, font, width, text)
 
   canv.context.restore();
   return lines;
+}
+
+//vector
+var addvec = function(a,b,r)
+{
+  r.x = a.x+b.x;
+  r.y = a.y+b.y;
+}
+var subvec = function(a,b,r)
+{
+  r.x = a.x-b.x;
+  r.y = a.y-b.y;
+}
+var mulvec = function(a,m,r)
+{
+  r.x = a.x*m;
+  r.y = a.y*m;
+}
+var lensqrvec = function(a)
+{
+  return (a.x*a.x)+(a.y*a.y);
+}
+var lenvec = function(a)
+{
+  return sqrt((a.x*a.x)+(a.y*a.y));
+}
+var normvec = function(a,r)
+{
+  var l = sqrt((a.x*a.x)+(a.y*a.y));
+  r.x = a.x/l;
+  r.y = a.y/l;
+}
+var safenormvec = function(a,m,r)
+{
+  var l = sqrt((a.x*a.x)+(a.y*a.y));
+  if(l != 0)
+  {
+    r.x = a.x/l;
+    r.y = a.y/l;
+  }
+  else
+  {
+    r.x = m;
+    r.y = 0;
+  }
+}
+var avevec = function(a,b,r)
+{
+  r.x = (a.x+b.x)/2.;
+  r.y = (a.y+b.y)/2.;
 }
 

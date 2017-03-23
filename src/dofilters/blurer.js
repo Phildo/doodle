@@ -1,3 +1,4 @@
+//Literally the inverse of "click"
 var Blurer = function(init)
 {
   var default_init =
@@ -8,13 +9,7 @@ var Blurer = function(init)
   var self = this;
   doMapInitDefaults(self,init,default_init);
 
-  var blurables = [];
-  var callbackQueue = [];
-  var evtQueue = [];
-  self.register = function(blurable) { blurables.push(blurable); }
-  self.unregister = function(blurable) { var i = blurables.indexOf(blurable); if(i != -1) blurables.splice(i,1); }
-  self.ignore = function() { callbackQueue = []; evtQueue = []; }
-  self.clear = function() { blurables = []; }
+  var evts = [];
   self.attach = function() //will get auto-called at creation
   {
     if(platform == "PC")          self.source.addEventListener('mousedown', blur, false);
@@ -29,29 +24,29 @@ var Blurer = function(init)
   function blur(evt)
   {
     doSetPosOnEvent(evt);
-    for(var i = 0; i < blurables.length; i++)
+    evts.push(evt);
+  }
+  self.filter = function(blurable)
+  {
+    var hit = false;
+    var evt;
+    for(var i = 0; i < evts.length; i++)
     {
-      if(blured(blurables[i], evt))
+      evt = evts[i];
+      if((blurable.shouldBlur && blurable.shouldBlur(evt)) || (!blurable.shouldBlur && !doEvtWithinBB(evt, blurable)))
       {
-        callbackQueue.push(blurables[i].blur);
-        evtQueue.push(evt);
+        blurable.blur(evt);
+        hit = true;
       }
     }
+    return hit;
   }
   self.flush = function()
   {
-    for(var i = 0; i < callbackQueue.length; i++)
-      callbackQueue[i](evtQueue[i]);
-    callbackQueue = [];
-    evtQueue = [];
+    evts = [];
   }
 
   self.attach();
-}
-
-var blured = function(blurable, evt)
-{
-  return !ptWithinObj(blurable, evt.doX, evt.doY);
 }
 
 //example blurable- just needs x,y,w,h and blur callback
@@ -63,6 +58,10 @@ var blurable = function(args)
   self.y = args.y ? args.y : 0;
   self.w = args.w ? args.w : 0;
   self.h = args.h ? args.h : 0;
+  self.shouldBlur = args.shouldBlur ? args.shouldBlur : function(evt) //optional
+  {
+    return !doEvtWithinBB(evt, self);
+  }
   self.blur = args.blur ? args.blur : function(){};
 
   //nice for debugging purposes
