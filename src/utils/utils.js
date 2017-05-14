@@ -223,7 +223,7 @@ var setBox = function(obj, x,y,w,h)
 //camera
 var screenSpaceX = function(cam, canv, x) { return (((( x)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;  }
 var screenSpaceY = function(cam, canv, y) { return ((((-y)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height; }
-var screenSpace = function(cam, canv, obj)
+var screenSpace  = function(cam, canv, obj)
 {
   //assumng xywh counterparts in world space (wx,wy,ww,wh,etc...)
   //where wx,wy is *center* of obj and cam
@@ -330,6 +330,12 @@ var GenIcon = function(w,h)
   return icon;
 }
 
+var GenImg = function(src)
+{
+  var img = new Image();
+  img.src = src;
+  return img;
+}
 
 var SeededRand = function(s)
 {
@@ -414,6 +420,19 @@ var textToLines = function(canv, font, width, text)
   return lines;
 }
 
+var drawOutlineText = function(txt,x,y,b,color,ctx)
+{
+  ctx.fillStyle = color;
+  ctx.fillText(txt,x-b,y-b);
+  ctx.fillText(txt,x+b,y-b);
+  ctx.fillText(txt,x-b,y+b);
+  ctx.fillText(txt,x+b,y+b);
+  ctx.fillText(txt,x-b,y  );
+  ctx.fillText(txt,x+b,y  );
+  ctx.fillText(txt,x  ,y+b);
+  ctx.fillText(txt,x  ,y-b);
+}
+
 //vector
 var addvec = function(a,b,r)
 {
@@ -464,32 +483,66 @@ var avevec = function(a,b,r)
   r.y = (a.y+b.y)/2.;
 }
 
-var bounce = function(target=0,v=0,vel=0,pull=0.1,drag=0.1)
+var spritesheet = function(img)
 {
   var self = this;
-  self.target = target;
-  self.v = v;
-  self.vel = vel;
-  self.pull = pull;
-  self.drag = drag;
+
+  self.img = img;
+  self.sprites = [];
+
+  //push sprites
+  //self.sprites.push({x:2,y:160,w:w,h:h});
+
+  self.drawSprite = function(i,x,y,w,h)
+  {
+    ctx.drawImage(self.img,self.sprites[i].x,self.sprites[i].y,self.sprites[i].w,self.sprites[i].h,x,y,w,h);
+  }
+}
+
+var bounce = function(target,v,vel,pull,drag)
+{
+  var self = this;
+
+  self.target = 0;
+  self.v = 0;
+  self.vel = 0;
+  self.pull = 0.1;
+  self.drag = 0.1;
+
+  if(target) self.target = target;
+  if(v)      self.v = v;
+  if(vel)    self.vel = vel;
+  if(pull)   self.pull = pull;
+  if(drag)   self.drag = drag;
+
   self.tick = function()
   {
     self.vel = (self.vel+(self.target-self.v)*self.pull)*(1-self.drag);
     self.v += self.vel;
   }
 }
-
-var bounce2 = function(targetx=0,targety=0,vx=0,vy=0,velx=0,vely=0,pull=0.1,drag=0.1)
+var bounce2 = function(targetx,targety,vx,vy,velx,vely,pull,drag)
 {
   var self = this;
-  self.targetx = targetx;
-  self.targety = targety;
-  self.vx = vx;
-  self.vy = vy;
-  self.velx = velx;
-  self.vely = vely;
-  self.pull = pull;
-  self.drag = drag;
+
+  self.targetx = 0;
+  self.targety = 0;
+  self.vx = 0;
+  self.vy = 0;
+  self.velx = 0;
+  self.vely = 0;
+  self.pull = 0.1;
+  self.drag = 0.1;
+
+  if(targetx) self.targetx = targetx;
+  if(targety) self.targety = targety;
+  if(vx)      self.vx = vx;
+  if(vy)      self.vy = vy;
+  if(velx)    self.velx = velx;
+  if(vely)    self.vely = vely;
+  if(pull)    self.pull = pull;
+  if(drag)    self.drag = drag;
+
   self.tick = function()
   {
     self.velx = (self.velx+(self.targetx-self.vx)*self.pull)*(1-self.drag);
