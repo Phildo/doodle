@@ -337,6 +337,14 @@ var GenImg = function(src)
   return img;
 }
 
+var GenAudio = function(src)
+{
+  var aud = new Audio();
+  aud.src = src;
+  return aud;
+}
+
+
 var SeededRand = function(s)
 {
   var self = this;
