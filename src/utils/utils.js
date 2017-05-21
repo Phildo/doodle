@@ -582,3 +582,75 @@ function getCookie(name)
   return "";
 }
 
+var animation = function()
+{
+  var self = this;
+
+  self.x = 0;
+  self.y = 0;
+  self.w = 0;
+  self.h = 0;
+
+  self.src;
+
+  self.animations = [];
+  //self.animations[ANIM_NULL] = []; for(var i = 115; i <= 115; i++) self.animations[ANIM_NULL].push(i);
+  //self.animations[ANIM_IDLE] = []; for(var i =   0; i <=   6; i++) self.animations[ANIM_BEGIN].push(i);
+
+  self.cur_anim = 0;//ANIM_NULL;
+  self.cur_anim_i = 0;
+  self.anim_queue = [];
+
+  self.frame_delay = 5;
+  var frame_delay_i = 0;
+
+  self.enqueueAnim = function(anim)
+  {
+    self.anim_queue.push(anim);
+  }
+
+  self.swapAnim = function(anim)
+  {
+    self.cur_anim = anim;
+    self.cur_anim_i = 0;
+    frame_delay_i = 0;
+    self.anim_queue = [];
+  }
+
+  self.tick = function()
+  {
+    frame_delay_i = (frame_delay_i + 1)%self.frame_delay;
+    if(frame_delay_i != 0) return;
+
+    self.cur_anim_i++;
+    if(self.cur_anim_i >= self.animations[self.cur_anim].length)
+    {
+      if(self.anim_queue.length)
+      {
+        self.cur_anim = self.anim_queue[0];
+        self.anim_queue.splice(0,1);
+        self.cur_anim_i = 0;
+      }
+      else
+      {
+        switch(self.cur_anim)
+        {
+        /*
+          case ANIM_IDLE:
+            self.cur_anim_i = 0;
+          break;
+        */
+          default:
+            self.cur_anim = 0; //ANIM_NULL;
+            self.cur_anim_i = 0;
+        }
+      }
+    }
+  }
+
+  self.draw = function()
+  {
+    ctx.drawImage(self.src[self.animations[self.cur_anim][self.cur_anim_i]],self.x,self.y,self.w,self.h);
+  }
+}
+
