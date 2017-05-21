@@ -654,3 +654,386 @@ var animation = function()
   }
 }
 
+var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function dateToString(d)
+{
+  var year = d.getFullYear();
+  var month = months[d.getMonth()];
+  var date = d.getDate();
+  var hour = d.getHours() < 10 ? '0' + d.getHours() : d.getHours();
+  var min = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
+  var sec = d.getSeconds() < 10 ? '0' + d.getSeconds() : d.getSeconds();
+  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+
+  return time;
+}
+
+//all data pts evenly spaced
+var constant_graph = function()
+{
+  var self = this;
+  self.x = 0;
+  self.y = 0;
+  self.w = 0;
+  self.h = 0;
+  self.wx = 0;
+  self.wy = 0;
+  self.ww = 0;
+  self.wh = 0;
+
+  self.data = [];
+  for(var i = 0; i < 1000; i++)
+    self.data[i] = sin(i/10);
+  self.min_xv = 0; //corresponds to data[0]
+  self.max_xv = 1; //corresponds to data[data.length-1]
+  self.disp_min_xv = self.min_xv;
+  self.disp_max_xv = self.max_xv;
+  self.disp_min_yv = -1;
+  self.disp_max_yv =  1;
+
+  self.cache;
+  self.dirty = true;
+
+  self.genCache = function()
+  {
+    self.cache = GenIcon(self.w,self.h);
+  }
+
+  self.draw = function(ctx)
+  {
+    if(self.dirty)
+    {
+      self.cache.context.clearRect(0,0,self.w,self.h);
+      //v = value
+      //p = pixel
+      //t = normalized range from min-max
+      //l = lerp to next val
+      //i = index
+      var xv = 0; //not actually used!
+      var yv;
+      var xp;
+      var yp;
+      var xl;
+      var xi;
+
+      var min_xt = mapVal(self.min_xv,self.max_xv,0,1,self.disp_min_xv);
+      var max_xt = mapVal(self.min_xv,self.max_xv,0,1,self.disp_max_xv);
+
+      xl = min_xt*self.data.length;
+      xi = floor(xl);
+      xl -= xi;
+
+      self.cache.context.strokeStyle = "#000000";
+      self.cache.context.beginPath();
+      yv = lerp(self.data[xi],self.data[xi+1],xl);
+      yp = mapVal(self.disp_min_yv, self.disp_max_yv, self.h, 0, yv);
+      self.cache.context.moveTo(0,yp);
+      for(var j = 1; j < self.w; j++)
+      {
+        xl = mapVal(0,self.w,min_xt,max_xt,j)*self.data.length;
+        xi = floor(xl);
+        xl -= xi;
+
+        yv = lerp(self.data[xi],self.data[xi+1],xl);
+        xp = j;
+        yp = mapVal(self.disp_min_yv, self.disp_max_yv, self.h, 0, yv);
+        self.cache.context.lineTo(xp,yp);
+      }
+      self.cache.context.stroke();
+
+      self.dirty = false
+    }
+
+    ctx.drawImage(self.cache,self.x,self.y,self.w,self.h);
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(self.x,self.y,self.w,self.h);
+  }
+}
+
+//data pts arbitrarily spaced
+var variable_graph = function()
+{
+  var self = this;
+  self.x = 0;
+  self.y = 0;
+  self.w = 0;
+  self.h = 0;
+  self.wx = 0;
+  self.wy = 0;
+  self.ww = 0;
+  self.wh = 0;
+
+  self.yv = [];
+  self.xv = [];
+  /*
+  //test data
+  var n = 10;
+  for(var i = 0; i < n; i++)
+  {
+    self.xv.push(i);
+    self.yv.push(sin(self.xv[self.xv.length-1]));
+  }
+  for(var i = 0; i < n*10; i++)
+  {
+    self.xv.push(self.xv[self.xv.length-1]+0.1);
+    self.yv.push(sin(self.xv[self.xv.length-1]));
+  }
+  for(var i = 0; i < n; i++)
+  {
+    self.xv.push(self.xv[self.xv.length-1]+1);
+    self.yv.push(sin(self.xv[self.xv.length-1]));
+  }
+  //end test data
+  self.disp_min_xv = self.xv[0];
+  self.disp_max_xv = self.xv[self.xv.length-1];
+  */
+  self.known_min_yv = 0;
+  self.known_max_yv = 0;
+  self.disp_min_xv = 0;
+  self.disp_max_xv = 1;
+  self.disp_min_yv = 0;
+  self.disp_max_yv = 1;
+
+  self.clampDispX = function()
+  {
+    self.dirty = true;
+    if(self.xv.length == 0)
+    {
+      self.disp_min_xv = -1;
+      self.disp_max_xv = 1;
+      return;
+    }
+    self.disp_min_xv = self.xv[0];
+    if(self.xv.length-1 < 0)
+    {
+      self.disp_max_xv = self.disp_min_xv;
+      return;
+    }
+    self.disp_max_xv = self.xv[self.xv.length-1];
+
+    if(self.disp_min_yv == self.disp_max_yv)
+    {
+      self.disp_min_yv -= 1;
+      self.disp_max_yv += 1;
+    }
+  }
+
+  self.findRangeY = function()
+  {
+    if(self.yv.length == 0)
+    {
+      self.known_min_yv = 0;
+      self.known_max_yv = 0;
+      return;
+    }
+    self.known_min_yv = self.yv[0];
+    self.known_max_yv = self.yv[0];
+    for(var i = 1; i < self.yv.length; i++)
+    {
+      if(self.yv[i] < self.known_min_yv) self.known_min_yv = self.yv[i];
+      if(self.yv[i] > self.known_max_yv) self.known_max_yv = self.yv[i];
+    }
+  }
+
+  self.clampDispY = function()
+  {
+    self.dirty = true;
+    if(self.known_min_yv == self.known_max_yv)
+    {
+      self.disp_min_yv = self.known_min_yv-1;
+      self.disp_max_yv = self.known_max_yv+1;
+    }
+    else
+    {
+      self.disp_min_yv = self.known_min_yv;
+      self.disp_max_yv = self.known_max_yv;
+    }
+  }
+
+  self.clampDisp = function()
+  {
+    self.clampDispX();
+    self.clampDispY();
+  }
+
+  self.cache;
+  self.dirty = true;
+
+  self.genCache = function()
+  {
+    self.cache = GenIcon(self.w,self.h);
+  }
+
+  self.verifyOrder = function()
+  {
+    for(var i = 0; i < self.xv.length-1; i++)
+      if(self.xv[i] > self.xv[i+1]) return false;
+    return true;
+  }
+
+  self.insertDataNext = function(x,y,i)
+  {
+    self.dirty = true;
+
+    if(!self.yv.length || y < self.known_min_yv) self.known_min_yv = y;
+    if(!self.yv.length || y > self.known_max_yv) self.known_max_yv = y;
+
+    i = self.nextibeforex(x,i)+1;
+    if(self.xv[i] == x)
+      self.yv[i] = y;
+    else
+    {
+      self.xv.splice(i,0,x);
+      self.yv.splice(i,0,y);
+    }
+    return i;
+  }
+
+  self.insertDataFind = function(x,y,min,max)
+  {
+    var i = self.findibeforex(x,min,max);
+    return self.insertDataNext(x,y,i);
+  }
+
+  self.insertDataBlockNext = function(x,y,i)
+  {
+    self.dirty = true;
+    if(x.length)
+    {
+      if(!self.yv.length) self.known_min_yv = y[0];
+      if(!self.yv.length) self.known_max_yv = y[0];
+    }
+    for(var j = 0; j < x.length; j++)
+    {
+      if(y[j] < self.known_min_yv) self.known_min_yv = y[j];
+      if(y[j] > self.known_max_yv) self.known_max_yv = y[j];
+
+      i = self.nextibeforex(x[j],i)+1;
+      self.xv.splice(i,0,x[j]);
+      self.yv.splice(i,0,y[j]);
+
+      if(self.xv[i] == x[j])
+        self.yv[i] = y[j];
+      else
+      {
+        self.xv.splice(i,0,x[j]);
+        self.yv.splice(i,0,y[j]);
+      }
+    }
+
+    return i;
+  }
+
+  self.insertDataBlockFind = function(x,y,min,max)
+  {
+    var i = self.findibeforex(x,min,max);
+    return self.insertDataBlockNext(x,y,i);
+  }
+
+  self.findqueryxt = function(xt,min,max)
+  {
+    var x = mapVal(0,1,self.disp_min_xv,self.disp_max_xv,xt);
+    return self.findqueryx(x,min,max);
+  }
+
+  self.nextqueryxt = function(xt,i)
+  {
+    var x = mapVal(0,1,self.disp_min_xv,self.disp_max_xv,xt);
+    return self.nextqueryx(x,i);
+  }
+
+  self.findqueryx = function(x,min,max)
+  {
+    var xi = self.findibeforex(x,min,max);
+    if(xi == -1) return self.yv[0];
+    if(xi == self.xv.length-1) return self.yv[xi];
+    var xl = mapVal(self.xv[xi],self.xv[xi+1],0,1,x)
+    return lerp(self.yv[xi],self.yv[xi+1],xl);
+  }
+
+  self.nextqueryx = function(x,i)
+  {
+    var xi = self.nextibeforex(x,i);
+    if(xi == -1) return self.yv[0];
+    if(xi == self.xv.length-1) return self.yv[xi];
+    var xl = mapVal(self.xv[xi],self.xv[xi+1],0,1,x)
+    return lerp(self.yv[xi],self.yv[xi+1],xl);
+  }
+
+  self.findibeforex = function(x,min,max)
+  {
+    if(!min) min = -1;
+    if(!max) max = self.xv.length;
+    var i = min;
+    while(min < max-1)
+    {
+      i = min+ceil((max-min)/2);
+           if(x > self.xv[i]) min = i;
+      else if(x < self.xv[i]) max = i;
+      else //found precisely
+      {
+        while(i > 0)
+        {
+          if(self.xv[i] < x) return i;
+          i--;
+        }
+        return 0;
+      }
+    }
+    return min;
+  }
+
+  self.nextibeforex = function(x,i)
+  {
+    for(; i < self.xv.length; i++)
+      if(x <= self.xv[i]) return i-1;
+    return self.xv.length-1;
+  }
+
+  self.draw = function(ctx)
+  {
+    if(self.dirty)
+    {
+      self.cache.context.clearRect(0,0,self.w,self.h);
+      //v = value
+      //p = pixel
+      //t = normalized range from min to max
+      //l = lerp to next val
+      //i = index
+      var xv = 0; //not actually used!
+      var yv;
+      var xp;
+      var yp;
+      var xl;
+      var xi;
+
+      self.cache.context.strokeStyle = "#000000";
+      self.cache.context.beginPath();
+      xi = self.nextibeforex(self.disp_min_xv,0);
+      xl = mapVal(self.xv[xi],self.xv[xi+1],0,1,self.disp_min_xv)
+      yv = lerp(self.yv[xi],self.yv[xi+1],xl);
+      yp = mapVal(self.disp_min_yv, self.disp_max_yv, self.h, 0, yv);
+      self.cache.context.moveTo(0,yp);
+      for(var j = 1; j < self.w; j++)
+      {
+        xv = mapVal(0,self.w,self.disp_min_xv,self.disp_max_xv,j);
+        xi = self.nextibeforex(xv,xi);
+        xl = mapVal(self.xv[xi],self.xv[xi+1],0,1,xv)
+        yv = lerp(self.yv[xi],self.yv[xi+1],xl);
+        xp = j;
+        yp = mapVal(self.disp_min_yv, self.disp_max_yv, self.h, 0, yv);
+        self.cache.context.lineTo(xp,yp);
+      }
+      self.cache.context.stroke();
+
+      self.dirty = false
+    }
+
+    ctx.drawImage(self.cache,self.x,self.y,self.w,self.h);
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(self.x,self.y,self.w,self.h);
+  }
+}
+
