@@ -1,4 +1,3 @@
-//Wrapper for "high performance" drawing (really, just pseudo double-buffering)
 var Stage = function(init)
 {
   var default_init =
@@ -23,26 +22,22 @@ var Stage = function(init)
              tmp_context.backingStorePixelRatio ||
              1;
 
-  self.drawCanv = new Canv({width:self.width,height:self.height,dpr_to_bspr:dpr/bspr});
-  self.drawCanv.context.scale(self.drawCanv.dpr_to_bspr, self.drawCanv.dpr_to_bspr);
-  self.drawCanv.scale = self.drawCanv.dpr_to_bspr;
-  self.dispCanv = new Canv({width:self.width,height:self.height,dpr_to_bspr:dpr/bspr});
-  self.dispCanv.canvas.style.border = "1px solid black";
+  self.canv = new Canv({width:self.width,height:self.height,dpr_to_bspr:dpr/bspr});
+  self.canv.context.scale(self.canv.dpr_to_bspr, self.canv.dpr_to_bspr);
+  self.canv.scale = self.canv.dpr_to_bspr;
 
-  self.dispCanv.canvas.style.width = self.width+"px";
-  self.dispCanv.canvas.style.height = self.height+"px";
+  self.canv.canvas.style.width = self.width+"px";
+  self.canv.canvas.style.height = self.height+"px";
 
   self.draw = function()
   {
-    self.drawCanv.blitTo(self.dispCanv);
   };
 
   self.clear = function()
   {
-    self.drawCanv.clear();
-    self.dispCanv.clear();
+    self.canv.clear();
   };
 
-  document.getElementById(self.container).appendChild(self.dispCanv.canvas);
+  document.getElementById(self.container).appendChild(self.canv.canvas);
 };
 

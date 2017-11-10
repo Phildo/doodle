@@ -28,7 +28,7 @@ var Game = function(init)
 
   var tick = function()
   {
-    requestAnimFrame(tick,stage.dispCanv.canvas);
+    requestAnimFrame(tick,stage.canv.canvas);
     stage.clear();
     scenes[cur_scene].tick();
     if(old_cur_scene == cur_scene) //still in same scene- draw

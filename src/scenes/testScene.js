@@ -2,7 +2,7 @@ var TestScene = function(game, stage)
 {
   var self = this;
 
-  var canv = stage.drawCanv;
+  var canv = stage.canv;
   var canvas = canv.canvas;
   var ctx = canv.context;
 
@@ -182,30 +182,30 @@ var TestScene = function(game, stage)
     assetter = new Assetter({});
     dbugger = new Debugger({source:document.getElementById("debug_div")});
     ticker = new Ticker({});
-    drawer = new Drawer({source:stage.drawCanv});
+    drawer = new Drawer({source:canv});
 
-    clicker = new Clicker({source:stage.dispCanv.canvas});
+    clicker = new Clicker({source:canv.canvas});
     clicker.register(clicktest);
     drawer.register(clicktest);
 
-    hoverer = new Hoverer({source:stage.dispCanv.canvas});
+    hoverer = new Hoverer({source:canv.canvas});
     hoverer.register(hovertest);
     drawer.register(hovertest);
 
-    dragger = new Dragger({source:stage.dispCanv.canvas});
+    dragger = new Dragger({source:canv.canvas});
     dragger.register(dragtest);
     drawer.register(dragtest);
 
-    flicker = new Flicker({source:stage.dispCanv.canvas});
+    flicker = new Flicker({source:canv.canvas});
     flicker.register(flicktest);
     drawer.register(flicktest);
 
-    presser = new Presser({source:stage.dispCanv.canvas});
+    presser = new Presser({source:canv.canvas});
     presser.register(presstest);
     drawer.register(presstest);
 
-    keyer = new Keyer({source:stage.dispCanv.canvas});
-    blurer = new Blurer({source:stage.dispCanv.canvas});
+    keyer = new Keyer({source:canv.canvas});
+    blurer = new Blurer({source:canv.canvas});
     keyer.register(numboxtest);
     blurer.register(numboxtest);
     dragger.register(numboxtest);
@@ -221,7 +221,7 @@ var TestScene = function(game, stage)
     ticker.register(particler);
     setTimeout(function(){ ticker.unregister(particler); }, 10000);
 
-    placer = new Placer({}, 100,100,100,100, stage.drawCanv);
+    placer = new Placer({}, 100,100,100,100, canv);
     drawer.register(placer);
     dragger.register(placer);
     clicker.register(placer);

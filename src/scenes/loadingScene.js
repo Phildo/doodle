@@ -2,7 +2,7 @@ var LoadingScene = function(game, stage)
 {
   var self = this;
 
-  var dc = stage.drawCanv;
+  var dc = stage.canv;
   var canvas = dc.canvas;
   var ctx = dc.context;
 

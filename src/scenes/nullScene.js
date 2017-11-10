@@ -2,7 +2,7 @@ var NullScene = function(game, stage)
 {
   var self = this;
 
-  var canv = stage.drawCanv;
+  var canv = stage.canv;
   var canvas = canv.canvas;
   var ctx = canv.context;
 
