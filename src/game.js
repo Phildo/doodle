@@ -17,8 +17,16 @@ var Game = function(init)
     //new TestScene(self, stage),
     new GamePlayScene(self, stage),
   ];
-  var cur_scene = 0;
+  var cur_scene     =  0;
   var old_cur_scene = -1;
+
+  self.resize = function(args)
+  {
+    document.getElementById(init.container).removeChild(stage.canv.canvas);
+    stage = new Stage({width:args.width,height:args.height,container:init.container});
+    for(var i = 0; i < scenes.length; i++)
+      scenes[i].resize(stage);
+  }
 
   self.begin = function()
   {

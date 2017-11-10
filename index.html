@@ -44,6 +44,12 @@ body,div
 <script type="text/javascript">
 var g;
 var d;
+function resize()
+{
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  if(g) g.resize({width:w,height:h});
+}
 function begin()
 {
   var w = 640;
@@ -65,6 +71,7 @@ function begin()
 }
 window.addEventListener('touchstart', function(e){ e.preventDefault() }); //prevent browser from doing anything funny
 window.addEventListener("load",begin,false);
+<!-- window.addEventListener("resize",resize,false); -->
 </script>
 
 </head>

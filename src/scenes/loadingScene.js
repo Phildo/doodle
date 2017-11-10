@@ -2,9 +2,16 @@ var LoadingScene = function(game, stage)
 {
   var self = this;
 
-  var dc = stage.canv;
-  var canvas = dc.canvas;
-  var ctx = dc.context;
+  var canv;
+  var canvas;
+  var ctx;
+  self.resize = function(stage)
+  {
+    canv = stage.canv;
+    canvas = canv.canvas;
+    ctx = canv.context;
+  }
+  self.resize(stage);
 
   var pad;
   var barw;
@@ -41,10 +48,17 @@ var LoadingScene = function(game, stage)
     n_audios_loaded++;
   };
 
+  self.resize = function(stage)
+  {
+    canv = stage.canv;
+    canvas = canv.canvas;
+    ctx = canv.context;
+  }
+
   self.ready = function()
   {
     pad = 20;
-    barw = (dc.width-(2*pad));
+    barw = (canv.width-(2*pad));
 
     loading_percent_loaded = 0;
     ticks_since_loading_ready = 0;
@@ -120,8 +134,8 @@ var LoadingScene = function(game, stage)
 
   self.draw = function()
   {
-    ctx.fillRect(pad,dc.height/2,chase_percent_loaded*barw,1);
-    ctx.strokeRect(pad-1,(dc.height/2)-1,barw+2,3);
+    ctx.fillRect(pad,canv.height/2,chase_percent_loaded*barw,1);
+    ctx.strokeRect(pad-1,(canv.height/2)-1,barw+2,3);
 
     if(loading_percent_loaded >= 1)
     {

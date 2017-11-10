@@ -2,9 +2,16 @@ var TestScene = function(game, stage)
 {
   var self = this;
 
-  var canv = stage.canv;
-  var canvas = canv.canvas;
-  var ctx = canv.context;
+  var canv;
+  var canvas;
+  var ctx;
+  self.resize = function(stage)
+  {
+    canv = stage.canv;
+    canvas = canv.canvas;
+    ctx = canv.context;
+  }
+  self.resize(stage);
 
   var assetter;
   var dbugger; //'debugger' is a keyword... (why.)
