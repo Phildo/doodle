@@ -14,6 +14,16 @@ function jsonFromURL()
   return result;
 }
 
+//colors
+var black = "#000000";
+var white = "#FFFFFF";
+var red   = "#FF0000";
+var green = "#00FF00";
+var blue  = "#0000FF";
+var cyan    = "#00FFFF";
+var magenta = "#FF00FF";
+var yellow  = "#FFFF00";
+
 //math (raw)
 function mapVal(from_min, from_max, to_min, to_max, v) { return ((v-from_min)/(from_max-from_min))*(to_max-to_min)+to_min; }
 function clamp(a,b,v) { if(v < a) return a; if(v > b) return b; return v; }
@@ -566,7 +576,7 @@ var spritesheet = function(img)
   }
 }
 
-var bounce = function(target,v,vel,pull,drag)
+var bounce = function(target,v,vel,pull,drag,safe)
 {
   var self = this;
 
@@ -575,17 +585,24 @@ var bounce = function(target,v,vel,pull,drag)
   self.vel = 0;
   self.pull = 0.1;
   self.drag = 0.1;
+  self.safe = 0.1;
 
   if(target) self.target = target;
   if(v)      self.v = v;
   if(vel)    self.vel = vel;
   if(pull)   self.pull = pull;
   if(drag)   self.drag = drag;
+  if(safe)   self.safe = safe;
 
   self.tick = function()
   {
-    self.vel = (self.vel+(self.target-self.v)*self.pull)*(1-self.drag);
-    self.v += self.vel;
+    if(abs(self.vel) < self.safe && abs(self.v-self.target) < self.safe)
+      self.v = lerp(self.v,self.target,0.1);
+    else
+    {
+      self.vel = (self.vel+(self.target-self.v)*self.pull)*(1-self.drag);
+      self.v += self.vel;
+    }
   }
 }
 var bounce2 = function(targetx,targety,vx,vy,velx,vely,pull,drag)
@@ -619,7 +636,31 @@ var bounce2 = function(targetx,targety,vx,vy,velx,vely,pull,drag)
   }
 }
 
-function imageBox(image,box,ctx)
+function drawImageCentered(image,x,y,w,h,ctx)
+{
+  ctx.drawImage(image,x-w/2,y-h/2,w,h);
+}
+function drawImageWidth(image,x,y,w,ctx)
+{
+  var h = image.height*w/image.width;
+  ctx.drawImage(image,x,y,w,h);
+}
+function drawImageHeight(image,x,y,h,ctx)
+{
+  var w = image.width*h/image.height;
+  ctx.drawImage(image,x,y,w,h);
+}
+function drawImageWidthCentered(image,x,y,w,ctx)
+{
+  var h = image.height*w/image.width;
+  ctx.drawImage(image,x-w/2,y-h/2,w,h);
+}
+function drawImageHeightCentered(image,x,y,h,ctx)
+{
+  var w = image.width*h/image.height;
+  ctx.drawImage(image,x-w/2,y-h/2,w,h);
+}
+function drawImageBox(image,box,ctx)
 {
   ctx.drawImage(image,box.x,box.y,box.w,box.h);
 }
@@ -661,7 +702,31 @@ function strokeRBox(box,r,ctx)
   ctx.closePath();
   ctx.stroke();
 }
-function fillR(x,y,w,h,r,ctx)
+function fillRect(x,y,w,h,ctx)
+{
+  ctx.fillRect(x,y,w,h);
+}
+function strokeRect(x,y,w,h,ctx)
+{
+  ctx.strokeRect(x,y,w,h);
+}
+function fillRectCentered(x,y,w,h,ctx)
+{
+  ctx.fillRect(x-w/2,y-h/2,w,h);
+}
+function strokeRectCentered(x,y,w,h,ctx)
+{
+  ctx.strokeRect(x-w/2,y-h/2,w,h);
+}
+function fillRRectCentered(x,y,w,h,r,ctx)
+{
+  fillRRect(x-w/2,y-h/2,w,h,r,ctx);
+}
+function strokeRRectCentered(x,y,w,h,r,ctx)
+{
+  strokeRRect(x-w/2,y-h/2,w,h,r,ctx);
+}
+function fillRRect(x,y,w,h,r,ctx)
 {
   ctx.beginPath();
   ctx.moveTo(x+r,y);
@@ -676,7 +741,7 @@ function fillR(x,y,w,h,r,ctx)
   ctx.closePath();
   ctx.fill();
 }
-function strokeR(x,y,w,h,r,ctx)
+function strokeRRect(x,y,w,h,r,ctx)
 {
   ctx.beginPath();
   ctx.moveTo(x+r,y);
