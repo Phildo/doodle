@@ -15,14 +15,17 @@ function jsonFromURL()
 }
 
 //colors
-var black = "#000000";
-var white = "#FFFFFF";
-var red   = "#FF0000";
-var green = "#00FF00";
-var blue  = "#0000FF";
+var black   = "#000000";
+var white   = "#FFFFFF";
+var red     = "#FF0000";
+var green   = "#00FF00";
+var blue    = "#0000FF";
 var cyan    = "#00FFFF";
 var magenta = "#FF00FF";
 var yellow  = "#FFFF00";
+
+var purple  = "#7856CB";
+var orange  = "#EE682C";
 
 //math (raw)
 function mapVal(from_min, from_max, to_min, to_max, v) { return ((v-from_min)/(from_max-from_min))*(to_max-to_min)+to_min; }
@@ -117,11 +120,11 @@ var ptWithin = function(x,y,w,h,ptx,pty) { return (ptx >= x && ptx <= x+w && pty
 var ptNear = function(x,y,r,ptx,pty) { var dx = ptx-x; var dy = pty-y; return (dx*dx+dy*dy) < r*r; }
 var rectCollide = function(ax,ay,aw,ah,bx,by,bw,bh) { return ax < bx+bw && bx < ax+aw && ay < by+bh && by < ay+ah; }
 
-var ptWithinObj = function(obj,ptx,pty)
+var ptWithinBox = function(box,ptx,pty)
 {
-  return (ptx >= obj.x && ptx <= obj.x+obj.w && pty >= obj.y && pty <= obj.y+obj.h);
+  return (ptx >= box.x && ptx <= box.x+box.w && pty >= box.y && pty <= box.y+box.h);
 }
-var objWithinObj = function(obja, objb)
+var boxWithinBox = function(boxa, boxb)
 {
   console.log("not done!");
   return false;
@@ -130,9 +133,9 @@ var worldPtWithin = function(wx, wy, ww, wh, ptx, pty)
 {
   return (ptx >= wx-(ww/2) && ptx <= wx+(ww/2) && pty >= wy-(wh/2) && pty <= wy+(wh/2));
 }
-var worldPtWithinObj = function(obj, ptx, pty)
+var worldPtWithinBox = function(box, ptx, pty)
 {
-  return (ptx >= obj.wx-(obj.ww/2) && ptx <= obj.wx+(obj.ww/2) && pty >= obj.wy-(obj.wh/2) && pty <= obj.wy+(obj.wh/2));
+  return (ptx >= box.wx-(box.ww/2) && ptx <= box.wx+(box.ww/2) && pty >= box.wy-(box.wh/2) && pty <= box.wy+(box.wh/2));
 }
 
 //conversions
@@ -223,43 +226,49 @@ var polarToCart = function(polar,cart)
 //short name- will be used often to place elements by percent, while guaranteeing integer results
 var p    = function(percent, of) { return Math.floor(percent * of); }
 var invp = function(      n, of) { return n/of; }
-var setBox = function(obj, x,y,w,h)
+var setBox = function(box, x,y,w,h)
 {
-  obj.x = x;
-  obj.y = y;
-  obj.w = w;
-  obj.h = h;
+  box.x = x;
+  box.y = y;
+  box.w = w;
+  box.h = h;
 }
 
 //camera
-var screenSpaceX = function(cam, canv, x) { return (((( x)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;  }
-var screenSpaceY = function(cam, canv, y) { return ((((-y)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height; }
-var screenSpace  = function(cam, canv, obj)
+var screenSpaceXpt = function(cam, canv, wx) { return (((( wx)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;  } //only operates on points!
+var screenSpaceYpt = function(cam, canv, wy) { return ((((-wy)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height; } //only operates on points!
+var screenSpaceX = function(cam, canv, ww, wx) { return (((( wx-ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;  }
+var screenSpaceY = function(cam, canv, wh, wy) { return ((((-wy-wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height; }
+var screenSpaceW = function(cam, canv, ww) { return (ww/cam.ww)*canv.width;  }
+var screenSpaceH = function(cam, canv, wh) { return (wh/cam.wh)*canv.height; }
+var screenSpace  = function(cam, canv, box)
 {
   //assumng xywh counterparts in world space (wx,wy,ww,wh,etc...)
-  //where wx,wy is *center* of obj and cam
+  //where wx,wy is *center* of box and cam
   //so cam.wx = 0; cam.ww = 1; would be a cam centered at the origin with visible range from -0.5 to 0.5
   //output xywh assume x,y is top left (ready to be 'blit' via canvas api)
-  obj.w = (obj.ww/cam.ww)*canv.width;
-  obj.h = (obj.wh/cam.wh)*canv.height;
-  obj.x = (((( obj.wx-obj.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
-  obj.y = ((((-obj.wy-obj.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
+  box.w = (box.ww/cam.ww)*canv.width;
+  box.h = (box.wh/cam.wh)*canv.height;
+  box.x = (((( box.wx-box.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
+  box.y = ((((-box.wy-box.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
 }
-var worldSpaceX = function(cam, canv, x) { return ((x/canv.width) -0.5)* cam.ww + cam.wx; }
-var worldSpaceY = function(cam, canv, y) { return ((y/canv.height)-0.5)*-cam.wh + cam.wy; }
+var worldSpaceXpt = function(cam, canv, x) { return ((x/canv.width) -0.5)* cam.ww + cam.wx; }
+var worldSpaceYpt = function(cam, canv, y) { return ((y/canv.height)-0.5)*-cam.wh + cam.wy; }
+var worldSpaceX = function(cam, canv, ww, x) { return ((x/canv.width) -0.5)* cam.ww + cam.wx + ww/2; }
+var worldSpaceY = function(cam, canv, wh, y) { return ((y/canv.height)-0.5)*-cam.wh + cam.wy + wh/2; }
 var worldSpaceW = function(cam, canv, w) { return (w/canv.width)*cam.ww; }
 var worldSpaceH = function(cam, canv, h) { return (h/canv.height)*cam.wh; }
-var worldSpaceCoords = function(cam, canv, obj) //opposite of screenspace, doesn't alter w/h (to preserve fp precision)
+var worldSpaceCoords = function(cam, canv, box) //opposite of screenspace, doesn't alter w/h (to preserve fp precision)
 {
-  obj.wx = (((obj.x/canv.width) -0.5)* cam.ww + cam.wx)+obj.ww/2;
-  obj.wy = (((obj.y/canv.height)-0.5)*-cam.wh + cam.wy)-obj.wh/2;
+  box.wx = (((box.x/canv.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
+  box.wy = (((box.y/canv.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
 }
-var worldSpace = function(cam, canv, obj) //opposite of screenspace
+var worldSpace = function(cam, canv, box) //opposite of screenspace
 {
-  obj.wx = (((obj.x/canv.width) -0.5)* cam.ww + cam.wx)+obj.ww/2;
-  obj.wy = (((obj.y/canv.height)-0.5)*-cam.wh + cam.wy)-obj.wh/2;
-  obj.ww = (obj.w/canv.width)*cam.ww;
-  obj.wh = (obj.h/canv.height)*cam.wh;
+  box.ww = (box.w/canv.width)*cam.ww;
+  box.wh = (box.h/canv.height)*cam.wh;
+  box.wx = (((box.x/canv.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
+  box.wy = (((box.y/canv.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
 }
 
 function lensqr(x,y)
@@ -791,8 +800,8 @@ var animation = function()
   self.src;
 
   self.animations = [];
-  //self.animations[ANIM_NULL] = []; for(var i = 115; i <= 115; i++) self.animations[ANIM_NULL].push(i);
-  //self.animations[ANIM_IDLE] = []; for(var i =   0; i <=   6; i++) self.animations[ANIM_BEGIN].push(i);
+  //self.animations[ANIM_NULL] = []; for(var i = 0; i <= 1; i++) self.animations[ANIM_NULL].push(i);
+  //self.animations[ANIM_IDLE] = []; for(var i = 2; i <= 3; i++) self.animations[ANIM_IDLE].push(i);
 
   self.cur_anim = 0;//ANIM_NULL;
   self.cur_anim_i = 0;
@@ -806,12 +815,44 @@ var animation = function()
     self.anim_queue.push(anim);
   }
 
+  self.injectAnim = function(anim)
+  {
+    self.cur_anim = anim;
+    self.cur_anim_i = 0;
+    frame_delay_i = 0;
+  }
+
   self.swapAnim = function(anim)
   {
     self.cur_anim = anim;
     self.cur_anim_i = 0;
     frame_delay_i = 0;
     self.anim_queue = [];
+  }
+
+  self.transition = function()
+  {
+    if(self.anim_queue.length)
+    {
+      self.cur_anim = self.anim_queue[0];
+      self.anim_queue.splice(0,1);
+      self.cur_anim_i = 0;
+    }
+    else
+    {
+      switch(self.cur_anim)
+      {
+      /*
+        case ANIM_IDLE:
+          self.cur_anim_i = 0;
+        break;
+      */
+        default:
+          self.cur_anim = 0; //ANIM_NULL;
+          self.cur_anim_i = 0;
+        break;
+      }
+    }
   }
 
   self.tick = function()
@@ -821,33 +862,16 @@ var animation = function()
 
     self.cur_anim_i++;
     if(self.cur_anim_i >= self.animations[self.cur_anim].length)
-    {
-      if(self.anim_queue.length)
-      {
-        self.cur_anim = self.anim_queue[0];
-        self.anim_queue.splice(0,1);
-        self.cur_anim_i = 0;
-      }
-      else
-      {
-        switch(self.cur_anim)
-        {
-        /*
-          case ANIM_IDLE:
-            self.cur_anim_i = 0;
-          break;
-        */
-          default:
-            self.cur_anim = 0; //ANIM_NULL;
-            self.cur_anim_i = 0;
-        }
-      }
-    }
+      self.transition();
   }
 
-  self.draw = function()
+  self.draw = function(ctx)
   {
-    ctx.drawImage(self.src[self.animations[self.cur_anim][self.cur_anim_i]],self.x,self.y,self.w,self.h);
+    ctx.save();
+    ctx.translate(self.x+self.w/2,self.y+self.h/2);
+    if(self.flip) ctx.scale(-1,1);
+    ctx.drawImage(self.src[self.animations[self.cur_anim][self.cur_anim_i]],-self.w/2,-self.h/2,self.w,self.h);
+    ctx.restore();
   }
 }
 
