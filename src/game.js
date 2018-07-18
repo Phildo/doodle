@@ -23,24 +23,40 @@ var Game = function(init)
   self.resize = function(args)
   {
     document.getElementById(init.container).removeChild(stage.canv.canvas);
-    stage = new Stage({width:args.width,height:args.height,container:init.container});
+    if(args.stage) stage = args.stage;
+    else stage = new Stage({width:args.width,height:args.height,container:init.container});
     for(var i = 0; i < scenes.length; i++)
       scenes[i].resize(stage);
   }
 
+  var flip;
+  var flop;
   self.begin = function()
   {
     self.nextScene();
+    flip = Date.now();
     tick();
   };
 
+  var DOUBLETIME = 0;
   var tick = function()
   {
     requestAnimFrame(tick,stage.canv.canvas);
-    stage.clear();
     scenes[cur_scene].tick();
+    var slow = false;
+    flop = Date.now();
+    slow = flop-flip > 25;
+    flip = flop;
+    if(old_cur_scene == cur_scene && (DOUBLETIME || slow))
+    {
+      scenes[cur_scene].tick();
+      //more like QUADRUPLETIME amirite
+      if(DOUBLETIME) scenes[cur_scene].tick();
+      if(DOUBLETIME) scenes[cur_scene].tick();
+    }
     if(old_cur_scene == cur_scene) //still in same scene- draw
     {
+      stage.clear();
       scenes[cur_scene].draw();
       stage.draw(); //blits from offscreen canvas to on screen one
     }

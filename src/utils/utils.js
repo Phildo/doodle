@@ -26,6 +26,21 @@ var yellow  = "#FFFF00";
 
 var purple  = "#7856CB";
 var orange  = "#EE682C";
+var gray    = "#888888";
+var dark_gray  = "#444444";
+var light_gray = "#CCCCCC";
+
+function nthIndex(needle, n, hay)
+{
+  var l = hay.length;
+  var index = -1;
+  for(var i = 0; i < n && index++ < l; i++)
+  {
+      index = hay.indexOf(needle, index);
+      if(index < 0) break;
+  }
+  return index;
+}
 
 //math (raw)
 function mapVal(from_min, from_max, to_min, to_max, v) { return ((v-from_min)/(from_max-from_min))*(to_max-to_min)+to_min; }
@@ -33,6 +48,17 @@ function clamp(a,b,v) { if(v < a) return a; if(v > b) return b; return v; }
 function eq(a,b,e) { return (a < b+e && a > b-e); }
 function lerp(s,e,t) { return s+((e-s)*t); }
 function invlerp(s,e,v) { return (v-s)/(e-s); }
+function easein(x)  { return x*x; } //only valid from 0-1
+function easeout(x) { x = 1-x; return 1-(x*x); } //only valid from 0-1
+function smooth(x) { return 3*x*x - 2*x*x*x; } //only valid from 0-1!
+function smoothn(n,x) //not at all done...
+{
+  switch(n)
+  {
+    case 0: return x;
+  }
+  return smooth(x); //lol
+}
 function clerp(s,e,t)
 {
   while(s < 0) s += Math.PI*2;
@@ -373,7 +399,6 @@ var GenAudio = function(src)
   return aud;
 }
 
-
 var SeededRand = function(s)
 {
   var self = this;
@@ -645,6 +670,43 @@ var bounce2 = function(targetx,targety,vx,vy,velx,vely,pull,drag)
   }
 }
 
+function drawCanvMaskedImage(image,x,y,w,h,canv,ctx)
+{
+  var srcx = 0;
+  var srcy = 0;
+  var srcw = image.width;
+  var srch = image.height;
+  var p;
+  if(x < 0)
+  {
+    p = (-x/w)*srcw;
+    srcx = p;
+    srcw -= p;
+    w += x;
+    x = 0;
+  }
+  if(y < 0)
+  {
+    p = (-y/h)*srch;
+    srcy = p;
+    srch -= p;
+    h += y;
+    y = 0;
+  }
+  if(x+w > canv.width)
+  {
+    p = (canv.width-x)/w;
+    w = canv.width-x;
+    srcw *= p;
+  }
+  if(y+h > canv.height)
+  {
+    p = (canv.height-y)/h;
+    h = canv.height-y;
+    srch *= p;
+  }
+  ctx.drawImage(image,srcx,srcy,srcw,srch,x,y,w,h);
+}
 function drawImageCentered(image,x,y,w,h,ctx)
 {
   ctx.drawImage(image,x-w/2,y-h/2,w,h);
@@ -817,6 +879,7 @@ var animation = function()
   self.w = 0;
   self.h = 0;
 
+  self.flip = 0;
   self.src;
 
   self.animations = [];
