@@ -30,10 +30,6 @@ var Stage = function(init)
   self.canv.canvas.style.width = self.width+"px";
   self.canv.canvas.style.height = self.height+"px";
 
-  self.draw = function()
-  {
-  };
-
   self.clear = function()
   {
     self.canv.clear();
