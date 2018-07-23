@@ -5,8 +5,9 @@ var NullScene = function(game, stage)
   var canv;
   var canvas;
   var ctx;
-  self.resize = function(stage)
+  self.resize = function(s)
   {
+    stage = s;
     canv = stage.canv;
     canvas = canv.canvas;
     ctx = canv.context;
