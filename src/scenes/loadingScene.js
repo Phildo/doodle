@@ -147,6 +147,7 @@ var LoadingScene = function(game, stage)
       audios[i] = new Audio();
       audios[i].addEventListener('canplaythrough', audioLoaded, false);
       audios[i].src = audio_srcs[i];
+      audios[i].load();
     }
     audioLoaded(); //call once to prevent 0/0 != 100% bug
   };
