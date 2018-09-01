@@ -1,3 +1,4 @@
+var DOUBLETIME = 0;
 var Game = function(init)
 {
   var default_init =
@@ -37,7 +38,6 @@ var Game = function(init)
     tick();
   };
 
-  var DOUBLETIME = 0;
   var tick = function()
   {
     requestAnimFrame(tick,stage.canv.canvas);
@@ -49,11 +49,8 @@ var Game = function(init)
     if(old_cur_scene == cur_scene && (DOUBLETIME || slow))
     {
       scenes[cur_scene].tick();
-      //more like QUADRUPLETIME amirite
       if(DOUBLETIME)
       {
-        scenes[cur_scene].tick();
-        scenes[cur_scene].tick();
         scenes[cur_scene].tick();
       }
     }

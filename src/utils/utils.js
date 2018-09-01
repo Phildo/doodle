@@ -24,6 +24,7 @@ var cyan    = "#00FFFF";
 var magenta = "#FF00FF";
 var yellow  = "#FFFF00";
 
+var brown   = "#6D4227";
 var purple  = "#7856CB";
 var orange  = "#EE682C";
 var gray    = "#888888";
@@ -44,8 +45,10 @@ function nthIndex(needle, n, hay)
 
 //math (raw)
 function mapVal(from_min, from_max, to_min, to_max, v) { return ((v-from_min)/(from_max-from_min))*(to_max-to_min)+to_min; }
+function clampMapVal(from_min, from_max, to_min, to_max, v) { return clamp(to_min,to_max,((v-from_min)/(from_max-from_min))*(to_max-to_min)+to_min); }
 function clamp(a,b,v) { if(v < a) return a; if(v > b) return b; return v; }
 function eq(a,b,e) { return (a < b+e && a > b-e); }
+function dir(v) { if(v > 0) return 1; else if(v < 0) return -1; else return 0; }
 function lerp(s,e,t) { return s+((e-s)*t); }
 function invlerp(s,e,v) { return (v-s)/(e-s); }
 function easein(x)  { return x*x; } //only valid from 0-1
@@ -102,6 +105,8 @@ var ceil = Math.ceil;
 var abs = Math.abs;
 var min = Math.min;
 var max = Math.max;
+var maxd = function(d,v) { if(v < 0) return -max(d,-v); else return max(d,v); }
+var mind = function(d,v) { if(v < 0) return -min(d,-v); else return min(d,v); }
 var pow = Math.pow;
 var sqrt = Math.sqrt;
 var sin = Math.sin;
@@ -267,6 +272,11 @@ var screenSpaceX = function(cam, canv, ww, wx) { return (((( wx-ww/2)-cam.wx)+(c
 var screenSpaceY = function(cam, canv, wh, wy) { return ((((-wy-wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height; }
 var screenSpaceW = function(cam, canv, ww) { return (ww/cam.ww)*canv.width;  }
 var screenSpaceH = function(cam, canv, wh) { return (wh/cam.wh)*canv.height; }
+var screenSpacePt = function(cam, canv, pt) //only operates on points!
+{
+  pt.x = (((( pt.wx)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
+  pt.y = ((((-pt.wy)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
+}
 var screenSpace  = function(cam, canv, box)
 {
   //assumng xywh counterparts in world space (wx,wy,ww,wh,etc...)
@@ -284,6 +294,16 @@ var worldSpaceX = function(cam, canv, ww, x) { return ((x/canv.width) -0.5)* cam
 var worldSpaceY = function(cam, canv, wh, y) { return ((y/canv.height)-0.5)*-cam.wh + cam.wy - wh/2; }
 var worldSpaceW = function(cam, canv, w) { return (w/canv.width)*cam.ww; }
 var worldSpaceH = function(cam, canv, h) { return (h/canv.height)*cam.wh; }
+var worldSpacePt = function(cam, canv, pt) //opposite of screenspace, pt
+{
+  pt.wx = ((pt.x/canv.width) -0.5)* cam.ww + cam.wx;
+  pt.wy = ((pt.y/canv.height)-0.5)*-cam.wh + cam.wy;
+}
+var worldSpaceDoEvt = function(cam, canv, evt) //opposite of screenspace, doEvt (same as pt, but accesses do[XY])
+{
+  evt.wx = ((evt.doX/canv.width) -0.5)* cam.ww + cam.wx;
+  evt.wy = ((evt.doY/canv.height)-0.5)*-cam.wh + cam.wy;
+}
 var worldSpaceCoords = function(cam, canv, box) //opposite of screenspace, doesn't alter w/h (to preserve fp precision)
 {
   box.wx = (((box.x/canv.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
@@ -381,6 +401,7 @@ var GenIcon = function(w,h)
   icon.context.fillStyle = "#000000";
   icon.context.strokeStyle = "#000000";
   icon.context.textAlign = "center";
+  icon.context.imageSmoothingEnabled = false;
 
   return icon;
 }
@@ -396,6 +417,7 @@ var GenAudio = function(src)
 {
   var aud = new Audio();
   aud.src = src;
+  aud.load();
   return aud;
 }
 
