@@ -11,11 +11,17 @@ var GamePlayScene = function(game, stage)
     canv = stage.canv;
     canvas = canv.canvas;
     ctx = canv.context;
+
+    if(hoverer) hoverer.detach(); hoverer = new PersistentHoverer({source:canvas});
+    if(clicker) clicker.detach(); clicker = new Clicker({source:canvas});
   }
-  self.resize(stage);
+
+  var hoverer;
+  var clicker;
 
   self.ready = function()
   {
+    self.resize(stage);
   };
 
   self.tick = function()
