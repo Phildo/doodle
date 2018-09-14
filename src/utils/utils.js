@@ -1776,3 +1776,45 @@ var running_deriv_variable_graph = function()
   }
 }
 
+var unplayed_audio_queue = [];
+var playHandlePromise = function(audio,q)
+{
+  r = audio.play();
+  if(!r) return;
+  r.catch(function(err){
+    if(!q) return;
+    for(var i = 0; i < unplayed_audio_queue.length; i++)
+      if(unplayed_audio_queue[i] == audio) return;
+    unplayed_audio_queue.push(audio);
+  });
+}
+
+function flush_unplayed_audio()
+{
+  for(var i = 0; i < unplayed_audio_queue.length; i++)
+  {
+    var r = unplayed_audio_queue[i].play();
+    if(r) r.catch(noop);
+  }
+  unplayed_audio_queue = [];
+}
+
+function break_unplayed_audio()
+{
+  unplayed_audio_queue = [];
+}
+
+function fullscreen()
+{
+  var el = document.body;
+  var requestMethod = el.requestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  if(requestMethod) requestMethod.call(el);
+}
+
+function unfullscreen()
+{
+  var el = document;
+  var exitMethod = el.exitFullscreen || el.webkitExitFullscreen || el.mozCancelFullScreen || el.msExitFullscreen;
+  if(exitMethod) exitMethod.call(el);
+}
+
