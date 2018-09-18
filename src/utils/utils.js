@@ -31,6 +31,13 @@ var gray    = "#888888";
 var dark_gray  = "#444444";
 var light_gray = "#CCCCCC";
 
+var dark_red    = "#880000";
+var light_red   = "#FFAAAA";
+var dark_green  = "#008800";
+var light_green = "#AAFFAA";
+var dark_blue   = "#000088";
+var light_blue  = "#AAAAFF";
+
 function nthIndex(needle, n, hay)
 {
   var l = hay.length;
@@ -108,6 +115,7 @@ var max = Math.max;
 var maxd = function(d,v) { if(v < 0) return -max(d,-v); else return max(d,v); }
 var mind = function(d,v) { if(v < 0) return -min(d,-v); else return min(d,v); }
 var pow = Math.pow;
+var sqr = function(v) { return v*v; }
 var sqrt = Math.sqrt;
 var sin = Math.sin;
 var asin = Math.asin;

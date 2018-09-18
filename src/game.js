@@ -1,4 +1,5 @@
 var DOUBLETIME = 0;
+var gg = {};
 var Game = function(init)
 {
   var default_init =

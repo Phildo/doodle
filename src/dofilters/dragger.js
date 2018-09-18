@@ -16,14 +16,14 @@ var Dragger = function(init)
   var evt_types = [];
   self.attach = function() //will get auto-called on create
   {
-    if(platform == "PC")
+    if(platform == DO_PLATFORM_PC)
     {
       self.source.addEventListener('mousedown', begin, false);
       self.source.addEventListener('mousemove', drag,  false);
       self.source.addEventListener('mouseup',   end,   false);
       window.addEventListener('mousemove', detectOut, false);
     }
-    else if(platform == "MOBILE")
+    else if(platform == DO_PLATFORM_MOBILE)
     {
       self.source.addEventListener('touchstart', begin, false);
       self.source.addEventListener('touchmove',  drag,  false);
@@ -33,14 +33,14 @@ var Dragger = function(init)
   }
   self.detach = function()
   {
-    if(platform == "PC")
+    if(platform == DO_PLATFORM_PC)
     {
       self.source.removeEventListener('mousedown', begin);
       self.source.removeEventListener('mousemove', drag);
       self.source.removeEventListener('mouseup',   end);
       window.removeEventListener('mousemove', detectOut, false);
     }
-    else if(platform == "MOBILE")
+    else if(platform == DO_PLATFORM_MOBILE)
     {
       self.source.removeEventListener('touchstart', begin);
       self.source.removeEventListener('touchmove',  drag);

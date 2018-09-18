@@ -11,13 +11,13 @@ var Clicker = function(init)
   var evts = [];
   self.attach = function() //will get auto-called at creation
   {
-    if(platform == "PC")          self.source.addEventListener('mousedown', click, false);
-    else if(platform == "MOBILE") self.source.addEventListener('touchstart', click, false);
+    if(platform == DO_PLATFORM_PC)          self.source.addEventListener('mousedown', click, false);
+    else if(platform == DO_PLATFORM_MOBILE) self.source.addEventListener('touchstart', click, false);
   }
   self.detach = function()
   {
-    if(platform == "PC")          self.source.removeEventListener('mousedown', click);
-    else if(platform == "MOBILE") self.source.removeEventListener('touchstart', click);
+    if(platform == DO_PLATFORM_PC)          self.source.removeEventListener('mousedown', click);
+    else if(platform == DO_PLATFORM_MOBILE) self.source.removeEventListener('touchstart', click);
   }
 
   function click(evt)

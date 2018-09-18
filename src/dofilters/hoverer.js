@@ -15,22 +15,22 @@ var Hoverer = function(init)
   var evt_types = [];
   self.attach = function() //will get auto-called on creation
   {
-    if(platform == "PC")
+    if(platform == DO_PLATFORM_PC)
     {
       self.source.addEventListener('mousemove', hover, false);
       window.addEventListener('mousemove', detectOut, false);
     }
-    else if(platform == "MOBILE")
+    else if(platform == DO_PLATFORM_MOBILE)
       ; //no hover on mobile, dummy
   }
   self.detach = function()
   {
-    if(platform == "PC")
+    if(platform == DO_PLATFORM_PC)
     {
       self.source.removeEventListener('mousemove', hover);
       window.removeEventListener('mousemove', detectOut, false);
     }
-    else if(platform == "MOBILE")
+    else if(platform == DO_PLATFORM_MOBILE)
       ; //no hover on mobile, dummy
   }
 
