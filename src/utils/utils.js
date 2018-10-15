@@ -38,6 +38,17 @@ var light_green = "#AAFFAA";
 var dark_blue   = "#000088";
 var light_blue  = "#AAAAFF";
 
+var SeededRand = function(s)
+{
+  var self = this;
+  self.seed = s;
+  self.next = function()
+  {
+  var x = Math.sin(self.seed++) * 10000;
+  return x - Math.floor(x);
+  }
+}
+
 function nthIndex(needle, n, hay)
 {
   var l = hay.length;
@@ -100,11 +111,17 @@ function dist(ax,ay,bx,by)
   var y = by-ay;
   return Math.sqrt(x*x+y*y);
 }
-function randIntBelow(n) { return Math.floor(Math.random()*n); }
+function randIntBelow(n) { return Math.floor(rand()*n); }
+function randIntBelowBias0(n) { return Math.floor(bias0(rand())*n); }
+function randIntBelowBias1(n) { return Math.floor(bias1(rand())*n); }
 function randBool() { return randIntBelow(2); }
-function rand0() { return (Math.random()*2)-1; }
-var randR = function(s,e) { return lerp(s,e,Math.random()); }
+function rand0() { return (rand()*2)-1; }
+var randR = function(s,e) { return lerp(s,e,rand()); }
+var bias0 = function(v) { return v*v; };
+var bias1 = function(v) { v = 1-v; return 1-(v*v); };
 //because the Math namespace is probably unnecessary for our purposes
+var srand = new SeededRand(0);
+//var rand = srand.next;
 var rand = Math.random;
 var round = Math.round;
 var floor = Math.floor;
@@ -429,17 +446,6 @@ var GenAudio = function(src)
   return aud;
 }
 
-var SeededRand = function(s)
-{
-  var self = this;
-  self.seed = s;
-  self.next = function()
-  {
-  var x = Math.sin(self.seed++) * 10000;
-  return x - Math.floor(x);
-  }
-}
-
 function noop(){}
 function ffunc(){return false;}
 function tfunc(){return true;}
@@ -460,6 +466,7 @@ function drawArrow(sx,sy,ex,ey,w,ctx)
   ctx.moveTo(sx+(dx/dd*(dd-w))+ox,sy+(dy/dd*(dd-w))+oy);
   ctx.lineTo(ex,ey);
   ctx.lineTo(sx+(dx/dd*(dd-w))-ox,sy+(dy/dd*(dd-w))-oy);
+  ctx.closePath();
   ctx.stroke();
 }
 
@@ -873,7 +880,7 @@ var UUIDint = function() //17 digits = 64 bit int; each second guaranteed unique
   if(d.getSeconds() < 10)  id += "0";
   id += d.getSeconds(); //12
   for(var i = 0; i < 5; i++)
-    id += Math.floor(Math.random()*10); //17
+    id += Math.floor(rand()*10); //17
 
   return parseInt(id);
 }
