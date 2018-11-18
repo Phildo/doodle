@@ -455,11 +455,8 @@ function drawArrow(sx,sy,ex,ey,w,ctx)
   var dx = ex-sx;
   var dy = ey-sy;
   var dd = Math.sqrt(dx*dx+dy*dy);
-  var ox = -dy;
-  var oy = dx;
-  var od = Math.sqrt(ox*ox+oy*oy);
-  var ox = (ox/od)*w;
-  var oy = (oy/od)*w;
+  var ox = (-dy/dd)*w;
+  var oy = (dx/dd)*w;
   ctx.beginPath();
   ctx.moveTo(sx,sy);
   ctx.lineTo(ex,ey);
@@ -644,6 +641,77 @@ var spritesheet = function(img)
   self.drawSprite = function(i,x,y,w,h)
   {
     ctx.drawImage(self.img,self.sprites[i].x,self.sprites[i].y,self.sprites[i].w,self.sprites[i].h,x,y,w,h);
+  }
+}
+
+var atlas = function()
+{
+  var self = this;
+
+  //used to (naively!) keep track of where new sprites go
+  self.x = 0;
+  self.y = 0;
+  self.row_h = 0;
+  //dimensions of whole atlas
+  self.w = 0;
+  self.h = 0;
+
+  self.img = 0;
+  self.context = 0;
+  self.n_sprites = 0;
+  self.sprite_x = [];
+  self.sprite_y = [];
+  self.sprite_w = [];
+  self.sprite_h = [];
+
+  self.init = function(w,h)
+  {
+    self.img = GenIcon(w,h);
+    self.x = 0;
+    self.y = 0;
+    self.row_h = 0;
+    self.w = w;
+    self.h = h;
+    self.context = self.img.context;
+  }
+
+  self.editSprite = function(i)
+  {
+    self.img.context.translate(self.sprite_x[i],self.sprite_y[i]);
+  }
+  self.commitSprite = function()
+  {
+    self.img.context.resetTransform();
+  }
+  self.getSprite = function(x,y,w,h)
+  {
+    self.sprite_x[self.n_sprites] = x;
+    self.sprite_y[self.n_sprites] = y;
+    self.sprite_w[self.n_sprites] = w;
+    self.sprite_h[self.n_sprites] = h;
+    var i = self.n_sprites;
+    self.n_sprites++;
+    self.editSprite(i);
+    return i;
+  }
+  self.nextRow = function()
+  {
+    self.x = 0;
+    self.y += self.row_h;
+    self.row_h = 0;
+  }
+  self.nextSprite = function(w,h)
+  {
+    if(self.x+w > self.w) self.nextRow();
+    if(h > self.row_h) self.row_h = h;
+    var i = self.getSprite(self.x,self.y,w,h);
+    self.x += w;
+    return i;
+  }
+
+  self.drawSprite = function(i,x,y,w,h,ctx)
+  {
+    ctx.drawImage(self.img,self.sprite_x[i],self.sprite_y[i],self.sprite_w[i],self.sprite_h[i],x,y,w,h);
   }
 }
 

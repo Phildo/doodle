@@ -848,3 +848,76 @@ var placer = function(asset, x,y,w,h, canv)
   }
 }
 
+var TouchViewer = function()
+{
+  var self = this;
+  self.x = 0;
+  self.y = 0;
+  self.w = 0;
+  self.h = 0;
+
+  self.positions = [];
+  self.position_i = 0;
+  self.max_positions = 200;
+  for(var i = 0; i < self.max_positions; i++)
+  {
+    self.positions[i*3+0] = 0;//evt.doX;
+    self.positions[i*3+1] = 0;//evt.doY;
+    self.positions[i*3+2] = 0;//m;
+  }
+
+  self.nq = function(evt,m)
+  {
+    self.positions[self.position_i*3+0] = evt.doX;
+    self.positions[self.position_i*3+1] = evt.doY;
+    self.positions[self.position_i*3+2] = m;
+    self.position_i++;
+    if(self.position_i > self.max_positions) self.position_i = 0;
+  }
+
+  self.last_evt = {doX:0,doY:0};
+  self.dragStart = function(evt)
+  {
+    self.nq(evt,0);
+    self.last_evt = evt;
+  }
+  self.drag = function(evt)
+  {
+    self.nq(evt,1);
+    self.last_evt = evt;
+  }
+  self.dragFinish = function()
+  {
+    self.nq(self.last_evt,2);
+  }
+
+  self.tick = function()
+  {
+    var ind = self.position_i-1;
+    if(ind == -1) ind = self.max_positions-1;
+    if(self.positions[ind*3+2] != 3)
+      self.nq(self.last_evt,3);
+  }
+
+  self.draw = function(ctx)
+  {
+    for(var i = 0; i < self.max_positions; i++)
+    {
+      var ind = (self.position_i+i)%self.max_positions;
+      var x = self.positions[ind*3+0];
+      var y = self.positions[ind*3+1];
+      var m = self.positions[ind*3+2];
+      switch(m)
+      {
+        case 0: ctx.fillStyle = red; break;
+        case 1: ctx.fillStyle = green; break;
+        case 2: ctx.fillStyle = blue; break;
+        case 3: ctx.fillStyle = black; break;
+      }
+      var s = (self.max_positions-i)/4;
+      if(m == 3) s /= 2;
+      ctx.fillRect(x-s/2,y-s/2,s,s);
+    }
+  }
+}
+

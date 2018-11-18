@@ -1,5 +1,5 @@
 var DOUBLETIME = 0;
-var gg = { params:jsonFromURL() };
+var gg = {};
 var Game = function(init)
 {
   var default_init =
@@ -35,31 +35,22 @@ var Game = function(init)
   self.begin = function()
   {
     self.nextScene();
-    flip = Date.now();
+    flip = performance.now();
     tick();
   };
 
   var tick = function()
   {
-    requestAnimFrame(tick,stage.canv.canvas);
+    requestAnimationFrame(tick);
     scenes[cur_scene].tick();
     var slow = false;
-    flop = Date.now();
-    slow = flop-flip > 25;
+    flop = performance.now();
+    slow = flop-flip > 17;
     flip = flop;
     if(old_cur_scene == cur_scene && (DOUBLETIME || slow))
-    {
       scenes[cur_scene].tick();
-      if(DOUBLETIME)
-      {
-        scenes[cur_scene].tick();
-      }
-    }
     if(old_cur_scene == cur_scene) //still in same scene- draw
-    {
-      stage.clear();
       scenes[cur_scene].draw();
-    }
     old_cur_scene = cur_scene;
   };
 
