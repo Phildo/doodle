@@ -4,37 +4,37 @@ var Stage = function(init)
   {
     width:640,
     height:320,
-    container:"stage_container"
+    dpr:1,
+    container:"stage_container",
+    smoothing:true,
   }
 
   var self = this;
   doMapInitDefaults(self,init,default_init);
 
-  //javascript is terrible
-  var dpr = window.devicePixelRatio ||
-            1;
-  var tmp_canvas = document.createElement('canvas');
-  var tmp_context = tmp_canvas.getContext('2d');
-  var bspr = tmp_context.webkitBackingStorePixelRatio ||
-             tmp_context.mozBackingStorePixelRatio ||
-             tmp_context.msBackingStorePixelRatio ||
-             tmp_context.oBackingStorePixelRatio ||
-             tmp_context.backingStorePixelRatio ||
-             1;
-  if(init.bspr) bspr = init.bspr;
+  self.width  = init.width;
+  self.height = init.height;
+  self.dpr = init.dpr;
+  if(!self.dpr) self.dpr = window.devicePixelRatio
+  if(!self.dpr) self.dpr = 1;
+  self.canvas = document.createElement('canvas');
+  self.canvas.width  = self.width *self.dpr;
+  self.canvas.height = self.height*self.dpr;
+  self.canvas.style.width = self.width+"px";
+  self.canvas.style.height = self.height+"px";
+  self.context = self.canvas.getContext('2d',{alpha:false});
+  if(self.dpr != 1) self.context.scale(self.dpr, self.dpr);
+  self.context.imageSmoothingEnabled = init.smoothing;
 
-  self.canv = new Canv({width:self.width,height:self.height,dpr_to_bspr:dpr/bspr});
-  self.canv.context.scale(self.canv.dpr_to_bspr, self.canv.dpr_to_bspr);
-  self.canv.scale = self.canv.dpr_to_bspr;
+  var pd = function(evt){ evt.preventDefault(); };
+  self.canvas.addEventListener('mousedown',pd,false);
+  self.canvas.addEventListener('touchstart',pd,false);
+  document.getElementById(self.container).appendChild(self.canvas);
 
-  self.canv.canvas.style.width = self.width+"px";
-  self.canv.canvas.style.height = self.height+"px";
-
-  self.clear = function()
+  self.detach = function()
   {
-    self.canv.clear();
-  };
-
-  document.getElementById(self.container).appendChild(self.canv.canvas);
+    self.canvas.removeEventListener('mousedown',pd);
+    self.canvas.removeEventListener('touchstart',pd);
+  }
 };
 

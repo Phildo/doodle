@@ -1,11 +1,3 @@
-/*
-*
-* DISCLAIMER: Javascript is terrible, and these utils are NOT intended for use in the general case
-* for JS and all of its terribleness. These functions operate only on the most naively constructed of
-* objects. If you're trying to do something fancy and these don't work for you, please take the
-* rest of the day off to question your life choices. I wish you the best of luck.
-*
-*/
 function jsonFromURL()
 {
   var query = location.search.substr(1);
@@ -291,55 +283,55 @@ var setBox = function(box, x,y,w,h)
 }
 
 //camera
-var screenSpaceXpt = function(cam, canv, wx) { return (((( wx)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;  } //only operates on points!
-var screenSpaceYpt = function(cam, canv, wy) { return ((((-wy)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height; } //only operates on points!
-var screenSpaceX = function(cam, canv, ww, wx) { return (((( wx-ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;  }
-var screenSpaceY = function(cam, canv, wh, wy) { return ((((-wy-wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height; }
-var screenSpaceW = function(cam, canv, ww) { return (ww/cam.ww)*canv.width;  }
-var screenSpaceH = function(cam, canv, wh) { return (wh/cam.wh)*canv.height; }
-var screenSpacePt = function(cam, canv, pt) //only operates on points!
+var screenSpaceXpt = function(cam, stage, wx) { return (((( wx)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;  } //only operates on points!
+var screenSpaceYpt = function(cam, stage, wy) { return ((((-wy)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height; } //only operates on points!
+var screenSpaceX = function(cam, stage, ww, wx) { return (((( wx-ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;  }
+var screenSpaceY = function(cam, stage, wh, wy) { return ((((-wy-wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height; }
+var screenSpaceW = function(cam, stage, ww) { return (ww/cam.ww)*stage.width;  }
+var screenSpaceH = function(cam, stage, wh) { return (wh/cam.wh)*stage.height; }
+var screenSpacePt = function(cam, stage, pt) //only operates on points!
 {
-  pt.x = (((( pt.wx)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
-  pt.y = ((((-pt.wy)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
+  pt.x = (((( pt.wx)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;
+  pt.y = ((((-pt.wy)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height;
 }
-var screenSpace  = function(cam, canv, box)
+var screenSpace  = function(cam, stage, box)
 {
   //assumng xywh counterparts in world space (wx,wy,ww,wh,etc...)
   //where wx,wy is *center* of box and cam
   //so cam.wx = 0; cam.ww = 1; would be a cam centered at the origin with visible range from -0.5 to 0.5
   //output xywh assume x,y is top left (ready to be 'blit' via canvas api)
-  box.w = (box.ww/cam.ww)*canv.width;
-  box.h = (box.wh/cam.wh)*canv.height;
-  box.x = (((( box.wx-box.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
-  box.y = ((((-box.wy-box.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
+  box.w = (box.ww/cam.ww)*stage.width;
+  box.h = (box.wh/cam.wh)*stage.height;
+  box.x = (((( box.wx-box.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;
+  box.y = ((((-box.wy-box.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height;
 }
-var worldSpaceXpt = function(cam, canv, x) { return ((x/canv.width) -0.5)* cam.ww + cam.wx; }
-var worldSpaceYpt = function(cam, canv, y) { return ((y/canv.height)-0.5)*-cam.wh + cam.wy; }
-var worldSpaceX = function(cam, canv, ww, x) { return ((x/canv.width) -0.5)* cam.ww + cam.wx + ww/2; }
-var worldSpaceY = function(cam, canv, wh, y) { return ((y/canv.height)-0.5)*-cam.wh + cam.wy - wh/2; }
-var worldSpaceW = function(cam, canv, w) { return (w/canv.width)*cam.ww; }
-var worldSpaceH = function(cam, canv, h) { return (h/canv.height)*cam.wh; }
-var worldSpacePt = function(cam, canv, pt) //opposite of screenspace, pt
+var worldSpaceXpt = function(cam, stage, x) { return ((x/stage.width) -0.5)* cam.ww + cam.wx; }
+var worldSpaceYpt = function(cam, stage, y) { return ((y/stage.height)-0.5)*-cam.wh + cam.wy; }
+var worldSpaceX = function(cam, stage, ww, x) { return ((x/stage.width) -0.5)* cam.ww + cam.wx + ww/2; }
+var worldSpaceY = function(cam, stage, wh, y) { return ((y/stage.height)-0.5)*-cam.wh + cam.wy - wh/2; }
+var worldSpaceW = function(cam, stage, w) { return (w/stage.width)*cam.ww; }
+var worldSpaceH = function(cam, stage, h) { return (h/stage.height)*cam.wh; }
+var worldSpacePt = function(cam, stage, pt) //opposite of screenspace, pt
 {
-  pt.wx = ((pt.x/canv.width) -0.5)* cam.ww + cam.wx;
-  pt.wy = ((pt.y/canv.height)-0.5)*-cam.wh + cam.wy;
+  pt.wx = ((pt.x/stage.width) -0.5)* cam.ww + cam.wx;
+  pt.wy = ((pt.y/stage.height)-0.5)*-cam.wh + cam.wy;
 }
-var worldSpaceDoEvt = function(cam, canv, evt) //opposite of screenspace, doEvt (same as pt, but accesses do[XY])
+var worldSpaceDoEvt = function(cam, stage, evt) //opposite of screenspace, doEvt (same as pt, but accesses do[XY])
 {
-  evt.wx = ((evt.doX/canv.width) -0.5)* cam.ww + cam.wx;
-  evt.wy = ((evt.doY/canv.height)-0.5)*-cam.wh + cam.wy;
+  evt.wx = ((evt.doX/stage.width) -0.5)* cam.ww + cam.wx;
+  evt.wy = ((evt.doY/stage.height)-0.5)*-cam.wh + cam.wy;
 }
-var worldSpaceCoords = function(cam, canv, box) //opposite of screenspace, doesn't alter w/h (to preserve fp precision)
+var worldSpaceCoords = function(cam, stage, box) //opposite of screenspace, doesn't alter w/h (to preserve fp precision)
 {
-  box.wx = (((box.x/canv.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
-  box.wy = (((box.y/canv.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
+  box.wx = (((box.x/stage.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
+  box.wy = (((box.y/stage.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
 }
-var worldSpace = function(cam, canv, box) //opposite of screenspace
+var worldSpace = function(cam, stage, box) //opposite of screenspace
 {
-  box.ww = (box.w/canv.width)*cam.ww;
-  box.wh = (box.h/canv.height)*cam.wh;
-  box.wx = (((box.x/canv.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
-  box.wy = (((box.y/canv.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
+  box.ww = (box.w/stage.width)*cam.ww;
+  box.wh = (box.h/stage.height)*cam.wh;
+  box.wx = (((box.x/stage.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
+  box.wy = (((box.y/stage.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
 }
 
 function lensqr(x,y)
@@ -426,7 +418,7 @@ var GenIcon = function(w,h)
   icon.context.fillStyle = "#000000";
   icon.context.strokeStyle = "#000000";
   icon.context.textAlign = "center";
-  icon.context.imageSmoothingEnabled = false;
+  icon.context.imageSmoothingEnabled = true;
 
   return icon;
 }
@@ -655,6 +647,9 @@ var atlas = function()
   //dimensions of whole atlas
   self.w = 0;
   self.h = 0;
+  //target of current sprite
+  self.ex = 0;
+  self.ey = 0;
 
   self.img = 0;
   self.context = 0;
@@ -666,6 +661,14 @@ var atlas = function()
 
   self.init = function(w,h)
   {
+  /*
+    //doesn't do anything...
+    if(window.OffscreenCanvas)
+    {
+      self.img = new OffscreenCanvas(w,h);
+      self.img.context = self.img.getContext('2d');
+    }
+  */
     self.img = GenIcon(w,h);
     self.x = 0;
     self.y = 0;
@@ -677,11 +680,15 @@ var atlas = function()
 
   self.editSprite = function(i)
   {
-    self.img.context.translate(self.sprite_x[i],self.sprite_y[i]);
+    self.ex += self.sprite_x[i];
+    self.ey += self.sprite_y[i];
+    //self.img.context.translate(self.sprite_x[i],self.sprite_y[i]);
   }
   self.commitSprite = function()
   {
-    self.img.context.resetTransform();
+    self.ex = 0;
+    self.ey = 0;
+    //self.img.context.resetTransform();
   }
   self.getSprite = function(x,y,w,h)
   {
@@ -775,7 +782,7 @@ var bounce2 = function(targetx,targety,vx,vy,velx,vely,pull,drag)
   }
 }
 
-function drawCanvMaskedImage(image,x,y,w,h,canv,ctx)
+function drawStageMaskedImage(image,x,y,w,h,stage,ctx)
 {
   var srcx = 0;
   var srcy = 0;
@@ -798,16 +805,16 @@ function drawCanvMaskedImage(image,x,y,w,h,canv,ctx)
     h += y;
     y = 0;
   }
-  if(x+w > canv.width)
+  if(x+w > stage.width)
   {
-    p = (canv.width-x)/w;
-    w = canv.width-x;
+    p = (stage.width-x)/w;
+    w = stage.width-x;
     srcw *= p;
   }
-  if(y+h > canv.height)
+  if(y+h > stage.height)
   {
-    p = (canv.height-y)/h;
-    h = canv.height-y;
+    p = (stage.height-y)/h;
+    h = stage.height-y;
     srch *= p;
   }
   ctx.drawImage(image,srcx,srcy,srcw,srch,x,y,w,h);

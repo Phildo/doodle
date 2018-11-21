@@ -2,19 +2,14 @@ var LoadingScene = function(game, stage)
 {
   var self = this;
 
-  var canv;
   var canvas;
   var ctx;
   self.resize = function(s)
   {
     stage = s;
-    canv = stage.canv;
-    canvas = canv.canvas;
-    ctx = canv.context;
-
-    //ctx.font = text_font;
+    canvas = stage.canvas;
+    ctx = stage.context;
   }
-  self.resize(stage);
 
   var pad;
   var barw;
@@ -61,13 +56,6 @@ var LoadingScene = function(game, stage)
     n_audios_loaded++;
   };
 
-  self.resize = function(stage)
-  {
-    canv = stage.canv;
-    canvas = canv.canvas;
-    ctx = canv.context;
-  }
-
   var tryfont = function()
   {
     font_canv.context.fillStyle = "#FFFFFF";
@@ -78,8 +66,9 @@ var LoadingScene = function(game, stage)
 
   self.ready = function()
   {
+    self.resize(stage);
     pad = 20;
-    barw = (canv.width-(2*pad));
+    barw = (stage.width-(2*pad));
 
     loading_percent_loaded = 0;
     ticks_since_loading_ready = 0;
@@ -196,8 +185,8 @@ var LoadingScene = function(game, stage)
     {
       ctx.fillStyle = "#888888";
       ctx.strokeStyle = "#888888";
-      ctx.fillRect(pad,canv.height/2,chase_percent_loaded*barw,1);
-      ctx.strokeRect(pad-1,(canv.height/2)-1,barw+2,3);
+      ctx.fillRect(pad,stage.height/2,chase_percent_loaded*barw,1);
+      ctx.strokeRect(pad-1,(stage.height/2)-1,barw+2,3);
     }
 
     if(loading_percent_loaded >= 1)

@@ -6,14 +6,13 @@ var GamePlayScene = function(game, stage)
   {
     stage = s;
     gg.stage = stage;
-    gg.canv = gg.stage.canv;
-    gg.canvas = gg.canv.canvas;
-    gg.ctx = gg.canv.context;
+    gg.canvas = gg.stage.canvas;
+    gg.ctx = gg.stage.context;
 
     if(hoverer) hoverer.detach(); hoverer = new PersistentHoverer({source:gg.canvas});
     if(clicker) clicker.detach(); clicker = new Clicker({source:gg.canvas});
     if(dragger) dragger.detach(); dragger = new Dragger({source:gg.canvas});
-    if(gg.cam) gg.cam = {wx:0,wy:0,ww:gg.canv.width,wh:gg.canv.height};
+    if(gg.cam) gg.cam = {wx:0,wy:0,ww:gg.stage.width,wh:gg.stage.height};
   }
 
   var hoverer;
@@ -46,7 +45,8 @@ var GamePlayScene = function(game, stage)
 
   self.draw = function()
   {
-    gg.stage.clear();
+    gg.ctx.fillStyle = white;
+    gg.ctx.fillRect(0,0,gg.stage.width,gg.stage.height);
   };
 
   self.cleanup = function()
