@@ -1,3 +1,4 @@
+'use strict';
 var Stage = function(init)
 {
   var default_init =

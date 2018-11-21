@@ -1,3 +1,4 @@
+'use strict';
 var PersistentHoverer = function(init)
 {
   var default_init =

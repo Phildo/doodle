@@ -1,3 +1,4 @@
+'use strict';
 var Hoverer = function(init)
 {
   var default_init =

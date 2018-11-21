@@ -1,3 +1,4 @@
+'use strict';
 var Clicker = function(init)
 {
   var default_init =

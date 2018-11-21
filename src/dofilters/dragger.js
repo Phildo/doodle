@@ -1,3 +1,4 @@
+'use strict';
 var Dragger = function(init)
 {
   var default_init =

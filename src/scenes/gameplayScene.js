@@ -1,3 +1,4 @@
+'use strict';
 var GamePlayScene = function(game, stage)
 {
   var self = this;

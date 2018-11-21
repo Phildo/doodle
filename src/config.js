@@ -1,3 +1,4 @@
+'use strict';
 var DO_PLATFORM_PC = 0;
 var DO_PLATFORM_MOBILE = 1;
 var platform = DO_PLATFORM_PC;

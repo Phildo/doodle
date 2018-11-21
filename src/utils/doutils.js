@@ -1,3 +1,4 @@
+'use strict';
 //utils specific to doodle
 
 //maps attributes found in defaults from init onto obj, falling back to defaults value if not present in init

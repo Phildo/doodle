@@ -1,3 +1,4 @@
+'use strict';
 function jsonFromURL()
 {
   var query = location.search.substr(1);

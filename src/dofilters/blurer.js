@@ -1,3 +1,4 @@
+'use strict';
 //Literally the inverse of "click"
 var Blurer = function(init)
 {
