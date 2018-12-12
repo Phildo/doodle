@@ -849,6 +849,184 @@ var placer = function(asset, x,y,w,h, canv)
   }
 }
 
+function HSVPicker(x,y,w,h,callback)
+{
+  var self = this;
+  self.x = x;
+  self.y = y;
+  self.w = w;
+  self.h = h;
+
+  self.palette_x = 0;
+  self.palette_y = 0;
+  self.palette_w = 0;
+  self.palette_h = 0;
+  self.palette_coord_x = 0;
+  self.palette_coord_y = 0;
+
+  self.saturation_x = 0;
+  self.saturation_y = 0;
+  self.saturation_w = 0;
+  self.saturation_h = 0;
+  self.saturation_coord_x = 0.5;
+
+  self.alpha_x = 0;
+  self.alpha_y = 0;
+  self.alpha_w = 0;
+  self.alpha_h = 0;
+  self.alpha_coord_x = 1;
+
+  self.color = {r:0,g:0,b:0,h:0,s:0,v:0,a:0};
+  self.color.s = self.saturation_coord_x;
+  self.color.a = self.alpha_coord_x;
+  self.tmp_color = {r:0,g:0,b:0,h:0,s:0,v:0,a:0};
+
+  self.palette = GenIcon(360,256);
+  self.update_palette = function()
+  {
+    self.tmp_color.s = self.color.s;
+    for(var i = 0; i < 360; i++)
+    {
+      self.tmp_color.h = i;
+      for(var j = 0; j < 255; j++)
+      {
+        self.tmp_color.v = j/255;
+        HSV2RGB(self.tmp_color,self.tmp_color);
+        self.palette.context.fillStyle = "rgba("+floor(self.tmp_color.r*255)+","+floor(self.tmp_color.g*255)+","+floor(self.tmp_color.b*255)+",1)";
+        self.palette.context.fillRect(i,j,1,1);
+      }
+    }
+  }
+  self.update_palette();
+
+  self.target_color = function()
+  {
+    self.palette_coord_x = self.color.h/360;
+    self.palette_coord_y = self.color.v;
+    self.saturation_coord_x = self.color.s;
+    self.alpha_coord_x = self.color.a;
+    self.update_palette();
+  }
+
+  self.size = function()
+  {
+    var p = self.w/100;
+    var s_height = 10;
+
+    self.palette_x = self.x+p;
+    self.palette_y = self.y+p;
+    self.palette_w = self.w-p*2;
+    self.palette_h = self.h-p*3-s_height*2;
+
+    self.saturation_x = self.x+p;
+    self.saturation_y = self.y+self.h-p*2-s_height*2;
+    self.saturation_w = self.w-p*2;
+    self.saturation_h = s_height;
+
+    self.alpha_x = self.x+p;
+    self.alpha_y = self.y+self.h-p-s_height;
+    self.alpha_w = self.w-p*2;
+    self.alpha_h = s_height;
+  }
+  self.size();
+
+  self.pick = function()
+  {
+    self.color.h = self.palette_coord_x*360;
+    self.color.s = self.saturation_coord_x;
+    self.color.v = self.palette_coord_y;
+    self.color.a = self.alpha_coord_x;
+    HSV2RGB(self.color,self.color);
+    callback(self.color);
+  }
+
+  self.dragging_palette = 0;
+  self.dragging_saturation = 0;
+  self.dragging_alpha = 0;
+  self.dragStart = function(evt)
+  {
+    self.dragging_palette = 0;
+    self.dragging_saturation = 0;
+    self.dragging_alpha = 0;
+    if(ptWithin(self.palette_x,self.palette_y,self.palette_w,self.palette_h,evt.doX,evt.doY))
+      self.dragging_palette = 1;
+    else if(ptWithin(self.saturation_x,self.saturation_y,self.saturation_w,self.saturation_h,evt.doX,evt.doY))
+      self.dragging_saturation = 1;
+    else if(ptWithin(self.alpha_x,self.alpha_y,self.alpha_w,self.alpha_h,evt.doX,evt.doY))
+      self.dragging_alpha = 1;
+    else
+    {
+      self.dragging = 0;
+      return 0;
+    }
+    self.drag(evt);
+    return 1;
+  }
+  self.drag = function(evt)
+  {
+    if(self.dragging_palette)
+    {
+      self.palette_coord_x = clamp(0,1,invlerp(self.palette_x,self.palette_x+self.palette_w,evt.doX));
+      self.palette_coord_y = clamp(0,1,invlerp(self.palette_y,self.palette_y+self.palette_h,evt.doY));
+      self.pick();
+    }
+    else if(self.dragging_saturation)
+    {
+      self.saturation_coord_x = clamp(0,1,invlerp(self.saturation_x,self.saturation_x+self.saturation_w,evt.doX));
+      self.pick();
+    }
+    else if(self.dragging_alpha)
+    {
+      self.alpha_coord_x = clamp(0,1,invlerp(self.alpha_x,self.alpha_x+self.alpha_w,evt.doX));
+      self.pick();
+    }
+  }
+  self.dragFinish = function(evt)
+  {
+    self.dragging_palette = 0;
+    if(self.dragging_saturation) self.update_palette();
+    self.dragging_saturation = 0;
+    self.dragging_alpha = 0;
+  }
+
+  self.tick = function()
+  {
+
+  }
+
+  self.draw = function(ctx)
+  {
+    var x;
+    var y;
+    ctx.strokeStyle = green;
+    ctx.strokeRect(self.x,self.y,self.w,self.h);
+    ctx.strokeRect(self.palette_x,self.palette_y,self.palette_w,self.palette_h);
+    ctx.strokeRect(self.saturation_x,self.saturation_y,self.saturation_w,self.saturation_h);
+    ctx.strokeRect(self.alpha_x,self.alpha_y,self.alpha_w,self.alpha_h);
+
+    ctx.globalAlpha = self.color.a;
+    ctx.drawImage(self.palette,self.palette_x,self.palette_y,self.palette_w,self.palette_h);
+    ctx.globalAlpha = 1;
+
+    ctx.strokeStyle = white;
+    ctx.fillStyle = black;
+
+    x = self.palette_x+self.palette_w*self.palette_coord_x;
+    y = self.palette_y+self.palette_h*self.palette_coord_y;
+    ctx.fillRect(self.saturation_x,self.saturation_y,self.saturation_w,self.saturation_h);
+    ctx.strokeRect(x-1,y-1,3,3);
+
+    x = self.saturation_x+self.saturation_w*self.saturation_coord_x;
+    y = self.saturation_y+self.saturation_h/2;
+    ctx.fillRect(self.alpha_x,self.alpha_y,self.alpha_w,self.alpha_h);
+    ctx.strokeRect(x-1,y-1,3,3);
+
+    x = self.alpha_x+self.alpha_w*self.alpha_coord_x;
+    y = self.alpha_y+self.alpha_h/2;
+    ctx.strokeRect(x-1,y-1,3,3);
+  }
+}
+
 var TouchViewer = function()
 {
   var self = this;

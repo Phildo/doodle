@@ -7,6 +7,34 @@ function jsonFromURL()
   return result;
 }
 
+function clone(o)
+{
+  if(typeof o === 'object') return cloneInto(o,{});
+  return o;
+}
+
+function cloneInto(src,dst)
+{
+  var attribs = Object.keys(src);
+  for(var i = 0; i < attribs.length; i++)
+  {
+    var k = attribs[i];
+    dst[k] = src[k];
+  }
+  return dst;
+}
+
+function deepCloneInto(src,dst) //NOT IMPLEMENTED! REALLY JUST EXISTS AS CONTRAST TO CLONEINTO TO DESCRIBE LIMITATIONS
+{
+  var attribs = Object.keys(src);
+  for(var i = 0; i < attribs.length; i++)
+  {
+    var k = attribs[i];
+    dst[k] = src[k];
+  }
+  return dst;
+}
+
 //colors
 var black   = "#000000";
 var white   = "#FFFFFF";
@@ -149,13 +177,13 @@ var fdisp = function(f,n) //formats float for display (from 8.124512 to 8.12)
   return Math.round(f*n)/n;
 }
 
-function mapPt(from,to,pt) //pt assumes position relative to "to"(box) as it previously was to "from"(box)
+function mapPt(from,to,pt)
 {
   pt.x = ((pt.x-from.x)/from.w)*to.w+to.x;
   pt.y = ((pt.y-from.y)/from.h)*to.h+to.y;
   return pt;
 }
-function mapRect(from,to,rect) //rect(box) assumes position relative to "to"(box) as it previously was to "from"(box)
+function mapRect(from,to,rect)
 {
   rect.x = ((rect.x-from.x)/from.w)*to.w+to.x;
   rect.y = ((rect.y-from.y)/from.h)*to.h+to.y;
@@ -206,50 +234,53 @@ var decToHex = function(dec, dig)
   return r;
 }
 
-var RGB2HSL = function(rgb, hsl)
+//rgb: {[0,1],[0,1],[0,1]}
+//hsv: {[0,360],[0,1],[0,1]}
+var RGB2HSV = function(rgb, hsv)
 {
   var cmax = Math.max(rgb.r,rgb.g,rgb.b);
   var cmin = Math.min(rgb.r,rgb.g,rgb.b);
   var d = cmax-cmin;
-  hsl.l = (cmax+cmin)/2;
-  if(hsl.l < 0.5) hsl.s = (cmax-cmin)/(cmax+cmin);
-  else            hsl.s = (cmax-cmin)/(2-cmax-cmin);
+  hsv.v = (cmax+cmin)/2;
+  if(hsv.v < 0.5) hsv.s = (cmax-cmin)/(cmax+cmin);
+  else            hsv.s = (cmax-cmin)/(2-cmax-cmin);
 
-  if(cmax == rgb.r) hsl.h = (rgb.g-rgb.b)/(cmax-cmin);
-  if(cmax == rgb.g) hsl.h = 2 + (rgb.b-rgb.r)/(cmax-cmin);
-  if(cmax == rgb.b) hsl.h = 4 + (rgb.r-rgb.g)/(cmax-cmin);
+  if(cmax == rgb.r) hsv.h = (rgb.g-rgb.b)/(cmax-cmin);
+  if(cmax == rgb.g) hsv.h = 2 + (rgb.b-rgb.r)/(cmax-cmin);
+  if(cmax == rgb.b) hsv.h = 4 + (rgb.r-rgb.g)/(cmax-cmin);
+  if(isNaN(hsv.h)) hsv.h = 0;
 
-  hsl.h *= 60;
+  hsv.h *= 60;
 
-  if(hsl.h < 0) hsl.h += 360;
+  if(hsv.h < 0) hsv.h += 360;
 }
 
-var HSL2RGBHelperConvertTMPValToFinal = function(tmp_1, tmp_2, val)
+var HSV2RGBHelperConvertTMPValToFinal = function(tmp_1, tmp_2, val)
 {
   if(val*6 < 1) return tmp_2 + (tmp_1-tmp_2)*6*val;
   else if(val*2 < 1) return tmp_1;
   else if(val*3 < 2) return tmp_2 + (tmp_1-tmp_2)*(0.666-val)*6;
   else return tmp_2;
 }
-var HSL2RGB = function(hsl, rgb)
+var HSV2RGB = function(hsv, rgb)
 {
   var tmp_1;
   var tmp_2;
   var tmp_3;
 
-  if(hsl.l < 0.5) tmp_1 = hsl.l * (1+hsl.s);
-  else            tmp_1 = hsl.l + hsl.s - (hsl.l*hsl.s);
+  if(hsv.v < 0.5) tmp_1 = hsv.v * (1+hsv.s);
+  else            tmp_1 = hsv.v + hsv.s - (hsv.v*hsv.s);
 
-  tmp_2 = (2*hsl.l)-tmp_1;
-  tmp_3 = hsl.h/360;
+  tmp_2 = (2*hsv.v)-tmp_1;
+  tmp_3 = hsv.h/360;
 
   rgb.r = tmp_3 + 0.333; while(rgb.r > 1) rgb.r -= 1; while(rgb.r < 0) rgb.r += 1;
   rgb.g = tmp_3;         while(rgb.g > 1) rgb.g -= 1; while(rgb.g < 0) rgb.g += 1;
   rgb.b = tmp_3 - 0.333; while(rgb.b > 1) rgb.b -= 1; while(rgb.b < 0) rgb.b += 1;
 
-  rgb.r = HSL2RGBHelperConvertTMPValToFinal(tmp_1, tmp_2, rgb.r);
-  rgb.g = HSL2RGBHelperConvertTMPValToFinal(tmp_1, tmp_2, rgb.g);
-  rgb.b = HSL2RGBHelperConvertTMPValToFinal(tmp_1, tmp_2, rgb.b);
+  rgb.r = HSV2RGBHelperConvertTMPValToFinal(tmp_1, tmp_2, rgb.r);
+  rgb.g = HSV2RGBHelperConvertTMPValToFinal(tmp_1, tmp_2, rgb.g);
+  rgb.b = HSV2RGBHelperConvertTMPValToFinal(tmp_1, tmp_2, rgb.b);
 }
 
 var RGB2Hex = function(rgb)
@@ -259,6 +290,36 @@ var RGB2Hex = function(rgb)
 var dec2Hex = function(n)
 {
   return n.toString(16);
+}
+
+var color_str_to_obj = function(str)
+{
+  var obj = {r:0,g:0,b:0,h:0,s:0,v:0,a:1};
+  if(str[0] == "#")
+  {
+    obj.r = parseInt(""+str[1]+str[2],16)/255;
+    obj.g = parseInt(""+str[3]+str[4],16)/255;
+    obj.b = parseInt(""+str[5]+str[6],16)/255;
+    obj.a = 1;
+    RGB2HSV(obj,obj);
+  }
+  else if(str[0] == "r")
+  {
+    var i = 5;
+    var j = str.indexOf(",",i);
+    obj.r = parseInt(str.substr(i,j-i))/255;
+    i = j+1;
+    j = str.indexOf(",",i);
+    obj.g = parseInt(str.substr(i,j-i))/255;
+    i = j+1;
+    j = str.indexOf(",",i);
+    obj.b = parseInt(str.substr(i,j-i))/255;
+    i = j+1;
+    j = str.indexOf(")",i);
+    obj.a = parseFloat(str.substr(i,j-i));
+    RGB2HSV(obj,obj);
+  }
+  return obj;
 }
 
 var cartToPolar = function(cart,polar)
@@ -660,10 +721,8 @@ var atlas = function()
   self.img = 0;
   self.context = 0;
   self.n_sprites = 0;
-  self.sprite_x = [];
-  self.sprite_y = [];
-  self.sprite_w = [];
-  self.sprite_h = [];
+  self.sprite_meta = []; //x,y,w,h,inx,iny,inw,inh
+  self.sprite_meta_n = 8;
 
   self.init = function(w,h)
   {
@@ -686,9 +745,10 @@ var atlas = function()
 
   self.editSprite = function(i)
   {
-    self.ex += self.sprite_x[i];
-    self.ey += self.sprite_y[i];
-    //self.img.context.translate(self.sprite_x[i],self.sprite_y[i]);
+    var index = self.sprite_meta_n*i;
+    self.ex += self.sprite_meta[index+0]-self.sprite_meta[index+4];
+    self.ey += self.sprite_meta[index+1]-self.sprite_meta[index+5];
+    //self.img.context.translate(self.sprite_meta[index+0]-self.sprite_meta[index+4],self.sprite_meta[index+1]-self.sprite_meta[index+5]);
   }
   self.commitSprite = function()
   {
@@ -696,13 +756,34 @@ var atlas = function()
     self.ey = 0;
     //self.img.context.resetTransform();
   }
-  self.getSprite = function(x,y,w,h)
+  self.getWholeSprite = function(x,y,w,h)
   {
-    self.sprite_x[self.n_sprites] = x;
-    self.sprite_y[self.n_sprites] = y;
-    self.sprite_w[self.n_sprites] = w;
-    self.sprite_h[self.n_sprites] = h;
     var i = self.n_sprites;
+    var index = self.sprite_meta_n*i;
+    self.sprite_meta[index+0] = x;
+    self.sprite_meta[index+1] = y;
+    self.sprite_meta[index+2] = w;
+    self.sprite_meta[index+3] = h;
+    self.sprite_meta[index+4] = 0;
+    self.sprite_meta[index+5] = 0;
+    self.sprite_meta[index+6] = w;
+    self.sprite_meta[index+7] = h;
+    self.n_sprites++;
+    self.editSprite(i);
+    return i;
+  }
+  self.getPartSprite = function(x,y,w,h,inx,iny,inw,inh)
+  {
+    var i = self.n_sprites;
+    var index = self.sprite_meta_n*i;
+    self.sprite_meta[index+0] = x;
+    self.sprite_meta[index+1] = y;
+    self.sprite_meta[index+2] = w;
+    self.sprite_meta[index+3] = h;
+    self.sprite_meta[index+4] = inx;
+    self.sprite_meta[index+5] = iny;
+    self.sprite_meta[index+6] = inw;
+    self.sprite_meta[index+7] = inh;
     self.n_sprites++;
     self.editSprite(i);
     return i;
@@ -713,18 +794,45 @@ var atlas = function()
     self.y += self.row_h;
     self.row_h = 0;
   }
-  self.nextSprite = function(w,h)
+  self.nextWholeSprite = function(w,h)
   {
     if(self.x+w > self.w) self.nextRow();
     if(h > self.row_h) self.row_h = h;
-    var i = self.getSprite(self.x,self.y,w,h);
+    var i = self.getWholeSprite(self.x,self.y,w,h);
     self.x += w;
     return i;
   }
-
-  self.drawSprite = function(i,x,y,w,h,ctx)
+  self.nextPartSprite = function(w,h,inx,iny,inw,inh)
   {
-    ctx.drawImage(self.img,self.sprite_x[i],self.sprite_y[i],self.sprite_w[i],self.sprite_h[i],x,y,w,h);
+    if(self.x+w > self.w) self.nextRow();
+    if(inh > self.row_h) self.row_h = inh;
+    var i = self.getPartSprite(self.x,self.y,w,h,inx,iny,inw,inh);
+    self.x += inw;
+    return i;
+  }
+
+  self.drawWholeSprite = function(i,x,y,w,h,ctx)
+  {
+    var index = self.sprite_meta_n*i;
+    ctx.drawImage(self.img,self.sprite_meta[index+0],self.sprite_meta[index+1],self.sprite_meta[index+2],self.sprite_meta[index+3],x,y,w,h);
+  }
+  self.drawPartSprite = function(i,x,y,w,h,ctx)
+  {
+    var index = self.sprite_meta_n*i;
+    var ws = self.sprite_meta[index+2]/w;
+    var hs = self.sprite_meta[index+3]/h;
+    ctx.drawImage(self.img,self.sprite_meta[index+0],self.sprite_meta[index+1],self.sprite_meta[index+6],self.sprite_meta[index+7],x+self.sprite_meta[index+4]*ws,y+self.sprite_meta[index+5]*hs,self.sprite_meta[index+6]*ws,self.sprite_meta[index+7]*hs);
+  }
+
+  self.blitWholeSprite = function(i,x,y,ctx)
+  {
+    var index = self.sprite_meta_n*i;
+    ctx.drawImage(self.img,self.sprite_meta[index+0],self.sprite_meta[index+1],self.sprite_meta[index+2],self.sprite_meta[index+3],x,y,self.sprite_meta[index+2],self.sprite_meta[index+3]);
+  }
+  self.blitPartSprite = function(i,x,y,ctx)
+  {
+    var index = self.sprite_meta_n*i;
+    ctx.drawImage(self.img,self.sprite_meta[index+0],self.sprite_meta[index+1],self.sprite_meta[index+6],self.sprite_meta[index+7],x+self.sprite_meta[index+4],y+self.sprite_meta[index+5],self.sprite_meta[index+6],self.sprite_meta[index+7]);
   }
 }
 
