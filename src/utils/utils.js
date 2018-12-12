@@ -149,13 +149,13 @@ var fdisp = function(f,n) //formats float for display (from 8.124512 to 8.12)
   return Math.round(f*n)/n;
 }
 
-function mapPt(from,to,pt)
+function mapPt(from,to,pt) //pt assumes position relative to "to"(box) as it previously was to "from"(box)
 {
   pt.x = ((pt.x-from.x)/from.w)*to.w+to.x;
   pt.y = ((pt.y-from.y)/from.h)*to.h+to.y;
   return pt;
 }
-function mapRect(from,to,rect)
+function mapRect(from,to,rect) //rect(box) assumes position relative to "to"(box) as it previously was to "from"(box)
 {
   rect.x = ((rect.x-from.x)/from.w)*to.w+to.x;
   rect.y = ((rect.y-from.y)/from.h)*to.h+to.y;
@@ -294,6 +294,11 @@ var screenSpacePt = function(cam, stage, pt) //only operates on points!
 {
   pt.x = (((( pt.wx)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;
   pt.y = ((((-pt.wy)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height;
+}
+var screenSpaceCoords  = function(cam, stage, box) //same as screenSpace, but only updates coords
+{
+  box.x = (((( box.wx-box.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;
+  box.y = ((((-box.wy-box.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height;
 }
 var screenSpace  = function(cam, stage, box)
 {
