@@ -71,7 +71,7 @@ function TextBox(x,y,w,h,txt,callback)
   self.drag = function(evt)
   {
     evt.hit_ui = true;
-    self.down = ptWithinObj(self, evt.doX, evt.doY);
+    self.down = ptWithinBox(self, evt.doX, evt.doY);
   }
   self.dragFinish = function()
   {
@@ -140,6 +140,12 @@ function DomTextBox(x,y,w,h,canv,txt,callback)
   self.box.style.height = self.h+"px";
   self.box_on = 0; //0 = canv, 1 = DOM
 
+  self.size = function()
+  {
+    self.box.style.width = self.w+"px";
+    self.box.style.height = self.h+"px";
+  }
+
   self.box.onchange = function()
   {
     self.blur();
@@ -166,10 +172,14 @@ function DomTextBox(x,y,w,h,canv,txt,callback)
     self.canv.canvas.parentElement.appendChild(self.box);
     self.box.focus();
   }
-  self.set = function(n)
+  self.quiet_set = function(n)
   {
     self.txt = n;
     self.box.value = self.txt;
+  }
+  self.set = function(n)
+  {
+    self.quiet_set(n);
     callback(self.txt);
   }
 
@@ -283,7 +293,7 @@ function NumberBox(x,y,w,h,val,delta,callback)
     self.number = validateNum(self.number + -self.deltaY*self.delta);
     self.value = ""+self.number;
 
-    self.down = ptWithinObj(self, evt.doX, evt.doY);
+    self.down = ptWithinBox(self, evt.doX, evt.doY);
     callback(self.number);
   }
   self.dragFinish = function()
@@ -718,7 +728,7 @@ function BinBox(x,y,w,h,drag_start_callback,drag_callback,drag_finish_callback,p
   {
     evt.hit_ui = true;
     self.pressed = false;
-    if(ptWithinObj(self, evt.doX, evt.doY))
+    if(ptWithinBox(self, evt.doX, evt.doY))
       release_callback();
   }
 
