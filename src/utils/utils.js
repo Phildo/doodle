@@ -170,6 +170,35 @@ var halfpi = pi/2;
 var quarterpi = pi/4;
 var twelvepi = 12*pi;
 
+function noop(){}
+function ffunc(){return false;}
+function tfunc(){return true;}
+
+
+var bounceup_data = [];
+{
+  var n = 100;
+  var p = 0;
+  var vel = 0;
+  var pull = 0.3;
+  var damp = 0.8;
+  for(var i = 0; i < n; i++)
+  {
+    p += vel;
+    vel += (1-p)*pull;
+    vel *= damp;
+    bounceup_data[i] = p;
+  }
+  bounceup_data[n] = bounceup_data[n-1];
+}
+var bounceup = function(t)
+{
+  t *= bounceup_data.length-1; //knowing that final data is duplicate
+  var root = floor(t);
+  var d = t-root;
+  return lerp(bounceup_data[root],bounceup_data[root+1],d);
+}
+
 var fdisp = function(f,n) //formats float for display (from 8.124512 to 8.12)
 {
   if(n == undefined) n = 2;
@@ -505,9 +534,376 @@ var GenAudio = function(src)
   return aud;
 }
 
-function noop(){}
-function ffunc(){return false;}
-function tfunc(){return true;}
+var AudWrangler = function(silence_t,silence_l,src)
+{
+  var self = this;
+
+  var ctx;
+  var data;
+  var buffer;
+  var track;
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', src, true);
+  xhr.responseType = 'arraybuffer';
+  xhr.onload = function() {
+    data = xhr.response;
+    if(ctx)
+    {
+      ctx.decodeAudioData(data, function(b){ data = 0; buffer = b; },
+      function(e){ console.log("Error with decoding audio data" + e.err); });
+    }
+  };
+  xhr.send();
+
+  var aud_t = [];
+  aud_t.push(silence_t);
+  var aud_l = [];
+  aud_l.push(silence_l);
+
+  self.init = function() //must be called by click on ios!
+  {
+    if(!ctx)
+    {
+      if(window.AudioContext) ctx = new AudioContext();
+      else if(window.webkitAudioContext) ctx = new webkitAudioContext();
+    }
+    if(data && !buffer)
+    {
+      ctx.decodeAudioData(data, function(b){ data = 0; buffer = b; },
+      function(e){ console.log("Error with decoding audio data" + e.err); });
+    }
+    if(buffer)
+    {
+      self.silence();
+      if(platform == DO_PLATFORM_PC)
+      document.getElementById("body").removeEventListener('click',    self.init);
+      else if(platform == DO_PLATFORM_MOBILE)
+      document.getElementById("body").removeEventListener('touchend', self.init);
+    }
+  }
+
+  self.register = function(t,l)
+  {
+    aud_t.push(t);
+    aud_l.push(l);
+    return aud_t.length-1;
+  }
+
+  self.silence = function()
+  {
+    self.play(0);
+  }
+  self.play = function(i)
+  {
+    if(ctx && ctx.state === 'suspended') ctx.resume();
+    if(ctx && buffer)
+    {
+      track = ctx.createBufferSource();
+      track.buffer = buffer;
+      track.connect(ctx.destination);
+      track.start(0,aud_t[i],aud_l[i]);
+    }
+  }
+
+  if(platform == DO_PLATFORM_PC)
+  document.getElementById("body").addEventListener('click',    self.init, {capture:true,once:false,passive:false});
+  else if(platform == DO_PLATFORM_MOBILE)
+  document.getElementById("body").addEventListener('touchend', self.init, {capture:true,once:false,passive:false});
+}
+
+var ClipWrangler = function()
+{
+  var self = this;
+  self.ctx;
+  self.enabled = 1;
+
+  var flip_clips = [];
+  var flip_bb_x = 0;
+  var flip_bb_y = 0;
+  var flip_bb_w = 0;
+  var flip_bb_h = 0;
+  self.n_flip_clips = 0;
+
+  var flop_clips = [];
+  var flop_bb_x = 0;
+  var flop_bb_y = 0;
+  var flop_bb_w = 0;
+  var flop_bb_h = 0;
+  self.n_flop_clips = 0;
+
+  self.bb_x = 0;
+  self.bb_y = 0;
+  self.bb_w = 0;
+  self.bb_h = 0;
+
+  var flip_flop = 0;
+
+  for(var i = 0; i < 100; i++)
+  {
+    flip_clips[i+0] = 0;
+    flip_clips[i+1] = 0;
+    flip_clips[i+2] = 0;
+    flip_clips[i+3] = 0;
+  }
+  for(var i = 0; i < 100; i++)
+  {
+    flop_clips[i+0] = 0;
+    flop_clips[i+1] = 0;
+    flop_clips[i+2] = 0;
+    flop_clips[i+3] = 0;
+  }
+
+  var index;
+
+  self.hijack_clip_bb = function(offx,offy,maxx,maxy,clip,ctx)
+  {
+    //if(floor(offx) != offx || floor(offy) != offy)
+      //console.log(offx,offy);
+    ctx.save();
+    ctx.beginPath();
+    if(self.n_flip_clips+self.n_flop_clips)
+    {
+      var x = self.bb_x+offx;
+      var y = self.bb_y+offy;
+      var w = self.bb_w+1;
+      var h = self.bb_h+1;
+      if(x < 0) { w += x; x = 0; }
+      if(y < 0) { h += y; y = 0; }
+      if(x+w > maxx) w -= x+w-maxx;
+      if(y+h > maxy) h -= y+h-maxy;
+      ctx.rect(x,y,w,h);
+      if(clip) ctx.clip();
+    }
+  }
+
+  self.hijack_clip = function(offx,offy,maxx,maxy,clip,ctx)
+  {
+    //if(floor(offx) != offx || floor(offy) != offy)
+      //console.log(offx,offy);
+    ctx.save();
+    ctx.beginPath();
+    var x;
+    var y;
+    var w;
+    var h;
+    for(var i = 0; i < self.n_flip_clips; i++)
+    {
+      index = i*4;
+      x = flip_clips[index+0]+offx;
+      y = flip_clips[index+1]+offy;
+      w = flip_clips[index+2];
+      h = flip_clips[index+3];
+      if(x < 0) { w += x; x = 0; }
+      if(y < 0) { h += y; y = 0; }
+      if(x+w > maxx) w -= x+w-maxx;
+      if(y+h > maxy) h -= y+h-maxy;
+      ctx.rect(x,y,w,h);
+    }
+    for(var i = 0; i < self.n_flop_clips; i++)
+    {
+      index = i*4;
+      x = flop_clips[index+0]+offx;
+      y = flop_clips[index+1]+offy;
+      w = flop_clips[index+2];
+      h = flop_clips[index+3];
+      if(x < 0) { w += x; x = 0; }
+      if(y < 0) { h += y; y = 0; }
+      if(x+w > maxx) w -= x+w-maxx;
+      if(y+h > maxy) h -= y+h-maxy;
+      ctx.rect(x,y,w,h);
+    }
+    if(clip) ctx.clip();
+  }
+
+  self.hijack_unclip = function(ctx)
+  {
+    ctx.restore();
+  }
+
+  self.clip_bb = function()
+  {
+    if(!self.enabled) return;
+    self.ctx.save();
+    self.ctx.beginPath();
+    if(self.n_flip_clips+self.n_flop_clips)
+    self.ctx.rect(self.bb_x, self.bb_y, self.bb_w, self.bb_h);
+    self.ctx.clip();
+  }
+
+  self.clip = function()
+  {
+    if(!self.enabled) return;
+    self.ctx.save();
+    self.ctx.beginPath();
+    for(var i = 0; i < self.n_flip_clips; i++)
+    {
+      index = i*4;
+      self.ctx.rect(flip_clips[index+0],flip_clips[index+1],flip_clips[index+2],flip_clips[index+3]);
+    }
+    for(var i = 0; i < self.n_flop_clips; i++)
+    {
+      index = i*4;
+      self.ctx.rect(flop_clips[index+0],flop_clips[index+1],flop_clips[index+2],flop_clips[index+3]);
+    }
+    self.ctx.clip();
+  }
+
+  self.unclip = function()
+  {
+    if(!self.enabled) return;
+    self.hijack_unclip(self.ctx);
+  }
+
+  self.debug = function()
+  {
+    self.ctx.save();
+    if(flip_flop)
+    {
+      console.log(self.n_flip_clips);
+      self.ctx.lineWidth = 2;
+      self.ctx.strokeStyle = "#FF0000";
+      for(var i = 0; i < self.n_flop_clips; i++)
+      {
+        index = i*4;
+        self.ctx.strokeRect(flop_clips[index+0],flop_clips[index+1],flop_clips[index+2],flop_clips[index+3]);
+      }
+      self.ctx.lineWidth = 0.5;
+      self.ctx.strokeStyle = "#00FF00";
+      for(var i = 0; i < self.n_flip_clips; i++)
+      {
+        index = i*4;
+        self.ctx.strokeRect(flip_clips[index+0],flip_clips[index+1],flip_clips[index+2],flip_clips[index+3]);
+      }
+    }
+    else
+    {
+      console.log(self.n_flop_clips);
+      self.ctx.lineWidth = 2;
+      self.ctx.strokeStyle = "#FF0000";
+      for(var i = 0; i < self.n_flip_clips; i++)
+      {
+        index = i*4;
+        self.ctx.strokeRect(flip_clips[index+0],flip_clips[index+1],flip_clips[index+2],flip_clips[index+3]);
+      }
+      self.ctx.lineWidth = 0.5;
+      self.ctx.strokeStyle = "#00FF00";
+      for(var i = 0; i < self.n_flop_clips; i++)
+      {
+        index = i*4;
+        self.ctx.strokeRect(flop_clips[index+0],flop_clips[index+1],flop_clips[index+2],flop_clips[index+3]);
+      }
+    }
+    if(self.n_flip_clips+self.n_flop_clips)
+    self.ctx.strokeRect(self.bb_x,self.bb_y,self.bb_w,self.bb_h);
+    else
+    self.ctx.strokeRect(10,10,10,10);
+    self.ctx.restore();
+  }
+
+  self.register = function(x,y,w,h)
+  {
+    //if(floor(x) != x || floor(y) != y || floor(w) != w || floor(h) != h)
+      //console.log(x,y,w,h);
+    if(flip_flop)
+    {
+      if(!self.n_flip_clips)
+      {
+        flip_bb_x = x;
+        flip_bb_y = y;
+        flip_bb_w = w;
+        flip_bb_h = h;
+      }
+      else
+      {
+        flip_bb_w += flip_bb_x;
+        flip_bb_h += flip_bb_y;
+        flip_bb_x = min(x,flip_bb_x);
+        flip_bb_y = min(y,flip_bb_y);
+        flip_bb_w = max(x+w,flip_bb_w)-flip_bb_x;
+        flip_bb_h = max(y+h,flip_bb_h)-flip_bb_y;
+      }
+
+      index = self.n_flip_clips*4;
+      flip_clips[index+0] = x;
+      flip_clips[index+1] = y;
+      flip_clips[index+2] = w;
+      flip_clips[index+3] = h;
+      self.n_flip_clips++;
+    }
+    else
+    {
+      if(!self.n_flop_clips)
+      {
+        flop_bb_x = x;
+        flop_bb_y = y;
+        flop_bb_w = w;
+        flop_bb_h = h;
+      }
+      else
+      {
+        flop_bb_w += flop_bb_x;
+        flop_bb_h += flop_bb_y;
+        flop_bb_x = min(x,flop_bb_x);
+        flop_bb_y = min(y,flop_bb_y);
+        flop_bb_w = max(x+w,flop_bb_w)-flop_bb_x;
+        flop_bb_h = max(y+h,flop_bb_h)-flop_bb_y;
+      }
+
+      index = self.n_flop_clips*4;
+      flop_clips[index+0] = x;
+      flop_clips[index+1] = y;
+      flop_clips[index+2] = w;
+      flop_clips[index+3] = h;
+      self.n_flop_clips++;
+    }
+  }
+
+  self.safe_register = function(x,y,w,h)
+  {
+    var nx = floor(x);
+    var ny = floor(y);
+    w = ceil(w+nx-x);
+    h = ceil(h+ny-y);
+    if(x < 0) { w += x; x = 0; }
+    if(y < 0) { h += y; y = 0; }
+    self.register(x,y,w,h);
+  }
+
+  self.get_bb = function()
+  {
+    if(!self.n_flop_clips)
+    {
+      self.bb_x = flip_bb_x;
+      self.bb_y = flip_bb_y;
+      self.bb_w = flip_bb_w;
+      self.bb_h = flip_bb_h;
+    }
+    else if(!self.n_flip_clips)
+    {
+      self.bb_x = flop_bb_x;
+      self.bb_y = flop_bb_y;
+      self.bb_w = flop_bb_w;
+      self.bb_h = flop_bb_h;
+    }
+    else
+    {
+      self.bb_x = min(flip_bb_x,flop_bb_x);
+      self.bb_y = min(flip_bb_y,flop_bb_y);
+      self.bb_w = max(flip_bb_x+flip_bb_w,flop_bb_x+flop_bb_w)-self.bb_x;
+      self.bb_h = max(flip_bb_y+flip_bb_h,flop_bb_y+flop_bb_h)-self.bb_y;
+    }
+  }
+
+  self.flip = function()
+  {
+    if(flip_flop)
+      self.n_flop_clips = 0;
+    else
+      self.n_flip_clips = 0;
+    flip_flop = !flip_flop;
+  }
+
+}
 
 function drawArrow(sx,sy,ex,ey,w,ctx)
 {
@@ -741,6 +1137,8 @@ var atlas = function()
     self.w = w;
     self.h = h;
     self.context = self.img.context;
+    self.context.fillStyle = "#00FF00";
+    //self.context.fillRect(0,0,w,h); //for debugging
   }
 
   self.editSprite = function(i)
@@ -748,12 +1146,17 @@ var atlas = function()
     var index = self.sprite_meta_n*i;
     self.ex += self.sprite_meta[index+0]-self.sprite_meta[index+4];
     self.ey += self.sprite_meta[index+1]-self.sprite_meta[index+5];
+    self.img.context.save();
+    self.img.context.beginPath();
+    self.img.context.rect(self.sprite_meta[index+0],self.sprite_meta[index+1],self.sprite_meta[index+6],self.sprite_meta[index+7]);
+    self.img.context.clip();
     //self.img.context.translate(self.sprite_meta[index+0]-self.sprite_meta[index+4],self.sprite_meta[index+1]-self.sprite_meta[index+5]);
   }
   self.commitSprite = function()
   {
     self.ex = 0;
     self.ey = 0;
+    self.img.context.restore();
     //self.img.context.resetTransform();
   }
   self.getWholeSprite = function(x,y,w,h)
@@ -769,6 +1172,7 @@ var atlas = function()
     self.sprite_meta[index+6] = w;
     self.sprite_meta[index+7] = h;
     self.n_sprites++;
+    self.context.clearRect(x,y,w,h);
     self.editSprite(i);
     return i;
   }
@@ -785,6 +1189,7 @@ var atlas = function()
     self.sprite_meta[index+6] = inw;
     self.sprite_meta[index+7] = inh;
     self.n_sprites++;
+    self.context.clearRect(x,y,inw,inh);
     self.editSprite(i);
     return i;
   }
@@ -796,6 +1201,8 @@ var atlas = function()
   }
   self.nextWholeSprite = function(w,h)
   {
+    w = ceil(w);
+    h = ceil(h);
     if(self.x+w > self.w) self.nextRow();
     if(h > self.row_h) self.row_h = h;
     var i = self.getWholeSprite(self.x,self.y,w,h);
@@ -804,7 +1211,13 @@ var atlas = function()
   }
   self.nextPartSprite = function(w,h,inx,iny,inw,inh)
   {
-    if(self.x+w > self.w) self.nextRow();
+    w = ceil(w);
+    h = ceil(h);
+    inx = floor(inx);
+    iny = floor(iny);
+    inw = ceil(inw);
+    inh = ceil(inh);
+    if(self.x+inw > self.w) self.nextRow();
     if(inh > self.row_h) self.row_h = inh;
     var i = self.getPartSprite(self.x,self.y,w,h,inx,iny,inw,inh);
     self.x += inw;
