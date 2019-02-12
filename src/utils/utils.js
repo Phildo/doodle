@@ -59,17 +59,6 @@ var light_green = "#AAFFAA";
 var dark_blue   = "#000088";
 var light_blue  = "#AAAAFF";
 
-var SeededRand = function(s)
-{
-  var self = this;
-  self.seed = s;
-  self.next = function()
-  {
-  var x = Math.sin(self.seed++) * 10000;
-  return x - Math.floor(x);
-  }
-}
-
 function nthIndex(needle, n, hay)
 {
   var l = hay.length;
@@ -140,10 +129,21 @@ function rand0() { return (rand()*2)-1; }
 var randR = function(s,e) { return lerp(s,e,rand()); }
 var bias0 = function(v) { return v*v; };
 var bias1 = function(v) { v = 1-v; return 1-(v*v); };
-//because the Math namespace is probably unnecessary for our purposes
+var SeededRand = function(s)
+{
+  var self = this;
+  self.seed = s;
+  self.next = function()
+  {
+  var x = Math.sin(self.seed++) * 10000;
+  return x - Math.floor(x);
+  }
+}
 var srand = new SeededRand(0);
 //var rand = srand.next;
 var rand = Math.random;
+function rand0() { return (rand()*2)-1; }
+var randR = function(s,e) { return lerp(s,e,rand()); }
 var round = Math.round;
 var floor = Math.floor;
 var ceil = Math.ceil;
@@ -345,60 +345,60 @@ var setBox = function(box, x,y,w,h)
 }
 
 //camera
-var screenSpaceXpt = function(cam, stage, wx) { return (((( wx)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;  } //only operates on points!
-var screenSpaceYpt = function(cam, stage, wy) { return ((((-wy)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height; } //only operates on points!
-var screenSpaceX = function(cam, stage, ww, wx) { return (((( wx-ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;  }
-var screenSpaceY = function(cam, stage, wh, wy) { return ((((-wy-wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height; }
-var screenSpaceW = function(cam, stage, ww) { return (ww/cam.ww)*stage.width;  }
-var screenSpaceH = function(cam, stage, wh) { return (wh/cam.wh)*stage.height; }
-var screenSpacePt = function(cam, stage, pt) //only operates on points!
+var screenSpaceXpt = function(cam, canv, wx) { return (((( wx)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;  } //only operates on points!
+var screenSpaceYpt = function(cam, canv, wy) { return ((((-wy)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height; } //only operates on points!
+var screenSpaceX = function(cam, canv, ww, wx) { return (((( wx-ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;  }
+var screenSpaceY = function(cam, canv, wh, wy) { return ((((-wy-wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height; }
+var screenSpaceW = function(cam, canv, ww) { return (ww/cam.ww)*canv.width;  }
+var screenSpaceH = function(cam, canv, wh) { return (wh/cam.wh)*canv.height; }
+var screenSpacePt = function(cam, canv, pt) //only operates on points!
 {
-  pt.x = (((( pt.wx)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;
-  pt.y = ((((-pt.wy)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height;
+  pt.x = (((( pt.wx)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
+  pt.y = ((((-pt.wy)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
 }
-var screenSpaceCoords  = function(cam, stage, box) //same as screenSpace, but only updates coords
+var screenSpaceCoords  = function(cam, canv, box) //same as screenSpace, but only updates coords
 {
-  box.x = (((( box.wx-box.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;
-  box.y = ((((-box.wy-box.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height;
+  box.x = (((( box.wx-box.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
+  box.y = ((((-box.wy-box.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
 }
-var screenSpace  = function(cam, stage, box)
+var screenSpace  = function(cam, canv, box)
 {
   //assumng xywh counterparts in world space (wx,wy,ww,wh,etc...)
   //where wx,wy is *center* of box and cam
   //so cam.wx = 0; cam.ww = 1; would be a cam centered at the origin with visible range from -0.5 to 0.5
   //output xywh assume x,y is top left (ready to be 'blit' via canvas api)
-  box.w = (box.ww/cam.ww)*stage.width;
-  box.h = (box.wh/cam.wh)*stage.height;
-  box.x = (((( box.wx-box.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*stage.width;
-  box.y = ((((-box.wy-box.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*stage.height;
+  box.w = (box.ww/cam.ww)*canv.width;
+  box.h = (box.wh/cam.wh)*canv.height;
+  box.x = (((( box.wx-box.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
+  box.y = ((((-box.wy-box.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
 }
-var worldSpaceXpt = function(cam, stage, x) { return ((x/stage.width) -0.5)* cam.ww + cam.wx; }
-var worldSpaceYpt = function(cam, stage, y) { return ((y/stage.height)-0.5)*-cam.wh + cam.wy; }
-var worldSpaceX = function(cam, stage, ww, x) { return ((x/stage.width) -0.5)* cam.ww + cam.wx + ww/2; }
-var worldSpaceY = function(cam, stage, wh, y) { return ((y/stage.height)-0.5)*-cam.wh + cam.wy - wh/2; }
-var worldSpaceW = function(cam, stage, w) { return (w/stage.width)*cam.ww; }
-var worldSpaceH = function(cam, stage, h) { return (h/stage.height)*cam.wh; }
-var worldSpacePt = function(cam, stage, pt) //opposite of screenspace, pt
+var worldSpaceXpt = function(cam, canv, x) { return ((x/canv.width) -0.5)* cam.ww + cam.wx; }
+var worldSpaceYpt = function(cam, canv, y) { return ((y/canv.height)-0.5)*-cam.wh + cam.wy; }
+var worldSpaceX = function(cam, canv, ww, x) { return ((x/canv.width) -0.5)* cam.ww + cam.wx + ww/2; }
+var worldSpaceY = function(cam, canv, wh, y) { return ((y/canv.height)-0.5)*-cam.wh + cam.wy - wh/2; }
+var worldSpaceW = function(cam, canv, w) { return (w/canv.width)*cam.ww; }
+var worldSpaceH = function(cam, canv, h) { return (h/canv.height)*cam.wh; }
+var worldSpacePt = function(cam, canv, pt) //opposite of screenspace, pt
 {
-  pt.wx = ((pt.x/stage.width) -0.5)* cam.ww + cam.wx;
-  pt.wy = ((pt.y/stage.height)-0.5)*-cam.wh + cam.wy;
+  pt.wx = ((pt.x/canv.width) -0.5)* cam.ww + cam.wx;
+  pt.wy = ((pt.y/canv.height)-0.5)*-cam.wh + cam.wy;
 }
 var worldSpaceDoEvt = function(cam, stage, evt) //opposite of screenspace, doEvt (same as pt, but accesses do[XY])
 {
   evt.wx = ((evt.doX/stage.width) -0.5)* cam.ww + cam.wx;
   evt.wy = ((evt.doY/stage.height)-0.5)*-cam.wh + cam.wy;
 }
-var worldSpaceCoords = function(cam, stage, box) //opposite of screenspace, doesn't alter w/h (to preserve fp precision)
+var worldSpaceCoords = function(cam, canv, box) //opposite of screenspace, doesn't alter w/h (to preserve fp precision)
 {
-  box.wx = (((box.x/stage.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
-  box.wy = (((box.y/stage.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
+  box.wx = (((box.x/canv.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
+  box.wy = (((box.y/canv.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
 }
-var worldSpace = function(cam, stage, box) //opposite of screenspace
+var worldSpace = function(cam, canv, box) //opposite of screenspace
 {
-  box.ww = (box.w/stage.width)*cam.ww;
-  box.wh = (box.h/stage.height)*cam.wh;
-  box.wx = (((box.x/stage.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
-  box.wy = (((box.y/stage.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
+  box.ww = (box.w/canv.width)*cam.ww;
+  box.wh = (box.h/canv.height)*cam.wh;
+  box.wx = (((box.x/canv.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
+  box.wy = (((box.y/canv.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
 }
 
 function lensqr(x,y)
@@ -896,7 +896,7 @@ var bounce2 = function(targetx,targety,vx,vy,velx,vely,pull,drag)
   }
 }
 
-function drawStageMaskedImage(image,x,y,w,h,stage,ctx)
+function drawCanvMaskedImage(image,x,y,w,h,canv,ctx)
 {
   var srcx = 0;
   var srcy = 0;
@@ -919,16 +919,16 @@ function drawStageMaskedImage(image,x,y,w,h,stage,ctx)
     h += y;
     y = 0;
   }
-  if(x+w > stage.width)
+  if(x+w > canv.width)
   {
-    p = (stage.width-x)/w;
-    w = stage.width-x;
+    p = (canv.width-x)/w;
+    w = canv.width-x;
     srcw *= p;
   }
-  if(y+h > stage.height)
+  if(y+h > canv.height)
   {
-    p = (stage.height-y)/h;
-    h = stage.height-y;
+    p = (canv.height-y)/h;
+    h = canv.height-y;
     srch *= p;
   }
   ctx.drawImage(image,srcx,srcy,srcw,srch,x,y,w,h);
