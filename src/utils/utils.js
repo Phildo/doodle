@@ -961,6 +961,17 @@ function drawImageBox(image,box,ctx)
 {
   ctx.drawImage(image,box.x,box.y,box.w,box.h);
 }
+function drawImageSizeCentered(image,x,y,s,ctx)
+{
+  var w = image.width*s/image.height;
+  var h = s;
+  if(w > s)
+  {
+    h = h*s/w;
+    w = s;
+  }
+  ctx.drawImage(image,x-w/2,y-h/2,w,h);
+}
 function strokeBox(box,ctx)
 {
   ctx.strokeRect(box.x,box.y,box.w,box.h);
