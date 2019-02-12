@@ -1018,22 +1018,33 @@ function HSVPicker(x,y,w,h,callback)
     ctx.drawImage(self.palette,self.palette_x,self.palette_y,self.palette_w,self.palette_h);
     ctx.globalAlpha = 1;
 
-    ctx.strokeStyle = white;
     ctx.fillStyle = black;
+    ctx.lineWidth = 2;
 
+    switch(randIntBelow(4))
+    {
+      case 0: ctx.fillStyle = green; break;
+      case 1: ctx.fillStyle = red;   break;
+      case 2: ctx.fillStyle = black; break;
+      case 3: ctx.fillStyle = white; break;
+    }
     x = self.palette_x+self.palette_w*self.palette_coord_x;
     y = self.palette_y+self.palette_h*self.palette_coord_y;
-    ctx.fillRect(self.saturation_x,self.saturation_y,self.saturation_w,self.saturation_h);
-    ctx.strokeRect(x-1,y-1,3,3);
+    ctx.fillRect(x-1,y-1,2,2);
+    ctx.fillStyle = black;
 
+    ctx.strokeStyle = white;
+    ctx.lineWidth = 1;
+
+    ctx.fillRect(self.saturation_x,self.saturation_y,self.saturation_w,self.saturation_h);
     x = self.saturation_x+self.saturation_w*self.saturation_coord_x;
     y = self.saturation_y+self.saturation_h/2;
-    ctx.fillRect(self.alpha_x,self.alpha_y,self.alpha_w,self.alpha_h);
-    ctx.strokeRect(x-1,y-1,3,3);
+    ctx.strokeRect(x-1,y-1,2,2);
 
+    ctx.fillRect(self.alpha_x,self.alpha_y,self.alpha_w,self.alpha_h);
     x = self.alpha_x+self.alpha_w*self.alpha_coord_x;
     y = self.alpha_y+self.alpha_h/2;
-    ctx.strokeRect(x-1,y-1,3,3);
+    ctx.strokeRect(x-1,y-1,2,2);
   }
 }
 
