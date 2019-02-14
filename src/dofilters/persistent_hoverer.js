@@ -70,7 +70,7 @@ var PersistentHoverer = function(init)
         {
           if(hoverable.hovering)
           {
-            if((hoverable.shouldHover && !hoverable.shouldHover(evt)) || (!hoverable.shouldHover && !doEvtWithinBB(evt,hoverable)))
+            if((hoverable.shouldHover && !hoverable.shouldHover(evt)) || (!hoverable.shouldHover && !doEvtWithinBox(evt,hoverable)))
             {
               hoverable.hovering = false;
               hoverable.unhover(evt);
@@ -82,14 +82,58 @@ var PersistentHoverer = function(init)
         {
           if(hoverable.hovering)
           {
-            if((hoverable.shouldHover && !hoverable.shouldHover(evt)) || (!hoverable.shouldHover && !doEvtWithinBB(evt,hoverable)))
+            if((hoverable.shouldHover && !hoverable.shouldHover(evt)) || (!hoverable.shouldHover && !doEvtWithinBox(evt,hoverable)))
             {
               hoverable.hovering = false;
               hoverable.unhover(evt);
             }
           }
 
-          if((hoverable.shouldHover && hoverable.shouldHover(evt)) || (!hoverable.shouldHover && doEvtWithinBB(evt,hoverable)))
+          if((hoverable.shouldHover && hoverable.shouldHover(evt)) || (!hoverable.shouldHover && doEvtWithinBox(evt,hoverable)))
+          {
+            hoverable.hovering = true;
+            hoverable.hover(evt);
+            hit = true;
+          }
+        }
+        break;
+      }
+    }
+    return hit;
+  }
+  self.quick_filter = function(hoverable)
+  {
+    var hit = false;
+    var evt;
+    for(var i = 0; i < evts.length; i++)
+    {
+      evt = evts[i];
+      switch(evt_types[i])
+      {
+        case EVT_TYPE_UNHOVER:
+        {
+          if(hoverable.hovering)
+          {
+            if(!doEvtWithinBox(evt,hoverable))
+            {
+              hoverable.hovering = false;
+              hoverable.unhover(evt);
+            }
+          }
+        }
+        break;
+        case EVT_TYPE_AMBIGUOUS:
+        {
+          if(hoverable.hovering)
+          {
+            if(!doEvtWithinBox(evt,hoverable))
+            {
+              hoverable.hovering = false;
+              hoverable.unhover(evt);
+            }
+          }
+
+          if(doEvtWithinBox(evt,hoverable))
           {
             hoverable.hovering = true;
             hoverable.hover(evt);
@@ -121,7 +165,7 @@ var Hoverable = function(args)
   self.h = args.h ? args.h : 0;
   self.shouldHover = args.shouldHover ? args.shouldHover : function(evt) //optional
   {
-    return doEvtWithinBB(evt, self);
+    return doEvtWithinBox(evt, self);
   }
   self.hover = args.hover ? args.hover : function(){};
   self.unhover = args.unhover ? args.unhover : function(){};

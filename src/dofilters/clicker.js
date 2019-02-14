@@ -33,9 +33,24 @@ var Clicker = function(init)
     for(var i = 0; i < evts.length; i++)
     {
       evt = evts[i];
-      if((clickable.shouldClick && clickable.shouldClick(evt)) || (!clickable.shouldClick && doEvtWithinBB(evt, clickable)))
+      if((clickable.shouldClick && clickable.shouldClick(evt)) || (!clickable.shouldClick && doEvtWithinBox(evt, clickable)))
       {
         clickable.click(evt);
+        hit = true;
+      }
+    }
+    return hit;
+  }
+  self.quick_filter = function(x,y,w,h,click)
+  {
+    var hit = false;
+    var evt;
+    for(var i = 0; i < evts.length; i++)
+    {
+      evt = evts[i];
+      if(doEvtWithin(evt, x,y,w,h))
+      {
+        click(evt);
         hit = true;
       }
     }
@@ -60,7 +75,7 @@ var Clickable = function(args)
   self.h = args.h ? args.h : 0;
   self.shouldClick = args.shouldClick ? args.shouldClick : function(evt) //optional
   {
-    return doEvtWithinBB(evt, self);
+    return doEvtWithinBox(evt, self);
   }
   self.click = args.click ? args.click : function(){};
 

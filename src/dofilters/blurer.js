@@ -34,7 +34,7 @@ var Blurer = function(init)
     for(var i = 0; i < evts.length; i++)
     {
       evt = evts[i];
-      if((blurable.shouldBlur && blurable.shouldBlur(evt)) || (!blurable.shouldBlur && !doEvtWithinBB(evt, blurable)))
+      if((blurable.shouldBlur && blurable.shouldBlur(evt)) || (!blurable.shouldBlur && !doEvtWithinBox(evt, blurable)))
       {
         blurable.blur(evt);
         hit = true;
@@ -61,7 +61,7 @@ var blurable = function(args)
   self.h = args.h ? args.h : 0;
   self.shouldBlur = args.shouldBlur ? args.shouldBlur : function(evt) //optional
   {
-    return !doEvtWithinBB(evt, self);
+    return !doEvtWithinBox(evt, self);
   }
   self.blur = args.blur ? args.blur : function(){};
 

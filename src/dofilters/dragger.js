@@ -98,7 +98,7 @@ var Dragger = function(init)
         {
           if(!draggable.dragging)
           {
-            if((draggable.shouldDrag && draggable.shouldDrag(evt)) || (!draggable.shouldDrag && doEvtWithinBB(evt, draggable)))
+            if((draggable.shouldDrag && draggable.shouldDrag(evt)) || (!draggable.shouldDrag && doEvtWithinBox(evt, draggable)))
             {
               draggable.dragging = true;
               draggable.dragStart(evt);
@@ -156,7 +156,7 @@ var Draggable = function(args)
 
   self.shouldDrag = args.shouldDrag ? args.shouldDrag : function(evt) //optional
   {
-    return doEvtWithinBB(evt, self);
+    return doEvtWithinBox(evt, self);
   }
   self.dragStart = args.dragStart ? args.dragStart : function(evt)
   {
