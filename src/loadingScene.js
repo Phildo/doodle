@@ -30,9 +30,7 @@ var LoadingScene = function()
   var font_wrongdata;
   var font_canv;
   var font_canv_s;
-  var n_audios_loaded;
-  var audio_srcs;
-  var audios;
+  gg.aud_wrangler;
 
   var loadingImageLoaded = function()
   {
@@ -45,10 +43,6 @@ var LoadingScene = function()
   var fontLoaded = function()
   {
     n_fonts_loaded++;
-  };
-  var audioLoaded = function()
-  {
-    n_audios_loaded++;
   };
 
   var tryfont = function()
@@ -83,9 +77,7 @@ var LoadingScene = function()
     n_fonts_loaded = 0;
     font_srcs = [];
     font_loaded = [];
-    n_audios_loaded = 0;
     audio_srcs = [];
-    audios = [];
 
     //put asset paths in loading_img_srcs (for assets used on loading screen itself)
     //loading_img_srcs.push("assets/loading_img.png");
@@ -126,14 +118,9 @@ var LoadingScene = function()
 
     //put asset paths in audio_srcs
     //audio_srcs.push("assets/audio.mp3");
+    gg.aud_wrangler = new AudWrangler();
     for(var i = 0; i < audio_srcs.length; i++)
-    {
-      audios[i] = new Audio();
-      audios[i].addEventListener('canplaythrough', audioLoaded, false);
-      audios[i].src = audio_srcs[i];
-      audios[i].load();
-    }
-    audioLoaded(); //call once to prevent 0/0 != 100% bug
+      gg.aud_wrangler.register(audio_srcs[i]);
   };
 
   self.tick = function()
@@ -162,7 +149,7 @@ var LoadingScene = function()
     //note- assets used on loading screen itself NOT included in wait
     loading_percent_loaded = n_loading_imgs_loaded/(loading_img_srcs.length+1);
     if(loading_percent_loaded >= 1.0) ticks_since_loading_ready++;
-    percent_loaded = (n_imgs_loaded+n_fonts_loaded+n_audios_loaded)/((img_srcs.length+1)+(font_srcs.length+1)+(audio_srcs.length+1));
+    percent_loaded = (n_imgs_loaded+n_fonts_loaded+(gg.aud_wrangler.auds_loaded+1))/((img_srcs.length+1)+(font_srcs.length+1)+(audio_srcs.length+1));
     if(chase_percent_loaded <= percent_loaded) chase_percent_loaded += 0.01;
     lerp_percent_loaded = lerp(lerp_percent_loaded,percent_loaded,0.1);
     lerp_chase_percent_loaded = lerp(lerp_chase_percent_loaded,chase_percent_loaded,0.1);
@@ -226,7 +213,6 @@ var LoadingScene = function()
 
   self.cleanup = function()
   {
-    audios = [];//just used them to cache assets in browser; let garbage collector handle 'em.
     imgs = [];//just used them to cache assets in browser; let garbage collector handle 'em.
     loading_imgs = [];//just used them to cache assets in browser; let garbage collector handle 'em.
   };
