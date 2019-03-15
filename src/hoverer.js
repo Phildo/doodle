@@ -1,13 +1,7 @@
-'use strict';
 var Hoverer = function(init)
 {
-  var default_init =
-  {
-    source:document.createElement('div')
-  }
-
   var self = this;
-  doMapInitDefaults(self,init,default_init);
+  self.source = init.source;
 
   var evts = [];
   var ENUM = 0;
@@ -16,23 +10,24 @@ var Hoverer = function(init)
   var evt_types = [];
   self.attach = function() //will get auto-called on creation
   {
-    if(platform == DO_PLATFORM_PC)
+    if(platform == PLATFORM_PC)
     {
       self.source.addEventListener('mousemove', hover, false);
       window.addEventListener('mousemove', detectOut, false);
     }
-    else if(platform == DO_PLATFORM_MOBILE)
+    else if(platform == PLATFORM_MOBILE)
       ; //no hover on mobile, dummy
   }
   self.detach = function()
   {
-    if(platform == DO_PLATFORM_PC)
+    if(platform == PLATFORM_PC)
     {
       self.source.removeEventListener('mousemove', hover);
       window.removeEventListener('mousemove', detectOut, false);
     }
-    else if(platform == DO_PLATFORM_MOBILE)
+    else if(platform == PLATFORM_MOBILE)
       ; //no hover on mobile, dummy
+    self.source = 0;
   }
 
   function hover(evt)

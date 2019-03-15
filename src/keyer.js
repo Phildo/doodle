@@ -1,4 +1,3 @@
-'use strict';
 var Keyer = function(init)
 {
   var default_init =

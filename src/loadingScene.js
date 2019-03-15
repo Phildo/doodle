@@ -1,15 +1,9 @@
-'use strict';
-var LoadingScene = function(game, stage)
+var LoadingScene = function()
 {
   var self = this;
 
-  var canvas;
-  var ctx;
-  self.resize = function(s)
+  self.resize = function()
   {
-    stage = s;
-    canvas = stage.canvas;
-    ctx = stage.context;
   }
 
   var pad;
@@ -67,7 +61,7 @@ var LoadingScene = function(game, stage)
 
   self.ready = function()
   {
-    self.resize(stage);
+    self.resize();
     pad = 20;
     barw = (stage.width-(2*pad));
 

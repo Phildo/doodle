@@ -1,4 +1,65 @@
-'use strict';
+//maps attributes found in defaults from init onto obj, falling back to defaults value if not present in init
+var doMapInitDefaults = function(obj, init, defaults)
+{
+  var attribs = Object.keys(defaults);
+  for(var i = 0; i < attribs.length; i++)
+  {
+    var k = attribs[i];
+    obj[k] = init.hasOwnProperty(k) ? init[k] : defaults[k];
+  }
+}
+
+//sets doX and doY as x/y offset into the object listening for the event
+function doSetPosOnEvent(evt)
+{
+  if(evt.offsetX != undefined)
+  {
+    evt.doX = evt.offsetX;
+    evt.doY = evt.offsetY;
+  }
+  else if(evt.touches != undefined && evt.touches[0] != undefined)
+  {
+    //unfortunately, seems necessary...
+    var t = evt.touches[0].target;
+
+    var box = t.getBoundingClientRect();
+    var body = document.body;
+    var docEl = document.documentElement;
+
+    var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+    var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+
+    var clientTop = docEl.clientTop || body.clientTop || 0;
+    var clientLeft = docEl.clientLeft || body.clientLeft || 0;
+
+    var top  = box.top +  scrollTop - clientTop;
+    var left = box.left + scrollLeft - clientLeft;
+
+    evt.doX = evt.touches[0].pageX-left;
+    evt.doY = evt.touches[0].pageY-top;
+
+  }
+  else if(evt.layerX != undefined && evt.originalTarget != undefined)
+  {
+    evt.doX = evt.layerX-evt.originalTarget.offsetLeft;
+    evt.doY = evt.layerY-evt.originalTarget.offsetTop;
+  }
+  else //give up because javascript is terrible
+  {
+    evt.doX = 0;
+    evt.doY = 0;
+  }
+}
+
+function doEvtWithinBox(evt, box)
+{
+  return (evt.doX >= box.x && evt.doX <= box.x+box.w && evt.doY >= box.y && evt.doY <= box.y+box.h);
+}
+function doEvtWithin(evt, x,y,w,h)
+{
+  return (evt.doX >= x && evt.doX <= x+w && evt.doY >= y && evt.doY <= y+h);
+}
+
 function jsonFromURL()
 {
   var query = location.search.substr(1);
@@ -193,7 +254,7 @@ var bounceup_data = [];
 }
 var bounceup = function(t)
 {
-  t *= bounceup_data.length-1; //knowing that final data is duplicate
+  t *= bounceup_data.length-2; //knowing that final data is duplicate
   var root = floor(t);
   var d = t-root;
   return lerp(bounceup_data[root],bounceup_data[root+1],d);
@@ -511,10 +572,6 @@ var GenIcon = function(w,h)
   icon.width = w || 10;
   icon.height = h || 10;
   icon.context = icon.getContext('2d');
-  icon.context.fillStyle = "#000000";
-  icon.context.strokeStyle = "#000000";
-  icon.context.textAlign = "center";
-  icon.context.imageSmoothingEnabled = true;
 
   return icon;
 }
@@ -534,31 +591,52 @@ var GenAudio = function(src)
   return aud;
 }
 
-var AudWrangler = function(silence_t,silence_l,src)
+var AudWrangler = function()
 {
   var self = this;
 
   var ctx;
-  var data;
-  var buffer;
-  var track;
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', src, true);
-  xhr.responseType = 'arraybuffer';
-  xhr.onload = function() {
-    data = xhr.response;
-    if(ctx)
-    {
-      ctx.decodeAudioData(data, function(b){ data = 0; buffer = b; },
-      function(e){ console.log("Error with decoding audio data" + e.err); });
-    }
-  };
-  xhr.send();
 
-  var aud_t = [];
-  aud_t.push(silence_t);
-  var aud_l = [];
-  aud_l.push(silence_l);
+  var aud_src = [];
+  var aud_data = [];
+  var aud_buffer = [];
+
+  var music_src = 0;
+  var music_data = 0;
+  var music_buffer = 0;
+  var music_track = 0;
+  var music_shouldbeplaying = 0;
+
+  self.held = 0;
+  self.initd = 0;
+
+  self.hold = function()
+  {
+    if(self.initd) return; //doesn't matter
+    if(self.held) return; //already done
+    self.held = 1;
+    self.unregisterevt();
+  }
+  self.unhold = function()
+  {
+    if(self.initd) return; //doesn't matter
+    if(!self.held) return; //already done
+    self.held = 0;
+    self.registerevt();
+  }
+
+  var evtpkg = {capture:true,once:false,passive:false};
+  self.registerevt = function()
+  {
+         if(platform == PLATFORM_PC)     document.getElementById("stage_container").addEventListener('click',    self.init, evtpkg);
+    else if(platform == PLATFORM_MOBILE) document.getElementById("stage_container").addEventListener('touchend', self.init, evtpkg);
+  }
+
+  self.unregisterevt = function()
+  {
+         if(platform == PLATFORM_PC)     document.getElementById("stage_container").removeEventListener('click',    self.init, evtpkg);
+    else if(platform == PLATFORM_MOBILE) document.getElementById("stage_container").removeEventListener('touchend', self.init, evtpkg);
+  }
 
   self.init = function() //must be called by click on ios!
   {
@@ -567,48 +645,110 @@ var AudWrangler = function(silence_t,silence_l,src)
       if(window.AudioContext) ctx = new AudioContext();
       else if(window.webkitAudioContext) ctx = new webkitAudioContext();
     }
-    if(data && !buffer)
+    var all_ready = 1;
+    for(var i = 0; i < aud_src.length; i++)
     {
-      ctx.decodeAudioData(data, function(b){ data = 0; buffer = b; },
-      function(e){ console.log("Error with decoding audio data" + e.err); });
+      if(aud_data[i] && !aud_buffer[i])
+      {
+        (function(i){ctx.decodeAudioData(aud_data[i], function(b){ aud_buffer[i] = b; },
+        function(e){ console.log("Error with decoding audio data" + e.err); });
+        })(i);
+        aud_data[i] = 0;
+      }
+      if(!aud_buffer[i]) all_ready = 0;
     }
-    if(buffer)
+    if(music_data && !music_buffer)
     {
-      self.silence();
-      if(platform == DO_PLATFORM_PC)
-      document.getElementById("body").removeEventListener('click',    self.init);
-      else if(platform == DO_PLATFORM_MOBILE)
-      document.getElementById("body").removeEventListener('touchend', self.init);
+      ctx.decodeAudioData(music_data, function(b){ music_buffer = b; if(music_shouldbeplaying) self.play_music(); },
+      function(e){ console.log("Error with decoding music data" + e.err); });
+      music_data = 0;
+      if(!music_buffer) all_ready = 0;
+    }
+    if(all_ready)
+    {
+      self.unregisterevt();
+      self.initd = 1;
+      self.play(0); //silence
     }
   }
 
-  self.register = function(t,l)
+  self.register = function(src)
   {
-    aud_t.push(t);
-    aud_l.push(l);
-    return aud_t.length-1;
+    var i = aud_src.length;
+
+    aud_src[i] = src;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', src, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function() {
+      xhr.onload = 0;
+      aud_data[i] = xhr.response;
+      if(ctx)
+      {
+        ctx.decodeAudioData(aud_data[i], function(b){ aud_buffer[i] = b; },
+        function(e){ console.log("Error with decoding audio data" + e.err); });
+        aud_data[i] = 0;
+      }
+    };
+    xhr.send();
+
+    return i;
   }
 
-  self.silence = function()
-  {
-    self.play(0);
-  }
   self.play = function(i)
   {
     if(ctx && ctx.state === 'suspended') ctx.resume();
-    if(ctx && buffer)
+    if(ctx && aud_buffer[i])
     {
+      var track;
       track = ctx.createBufferSource();
-      track.buffer = buffer;
+      track.buffer = aud_buffer[i];
       track.connect(ctx.destination);
-      track.start(0,aud_t[i],aud_l[i]);
+      track.start(0);
     }
   }
 
-  if(platform == DO_PLATFORM_PC)
-  document.getElementById("body").addEventListener('click',    self.init, {capture:true,once:false,passive:false});
-  else if(platform == DO_PLATFORM_MOBILE)
-  document.getElementById("body").addEventListener('touchend', self.init, {capture:true,once:false,passive:false});
+  self.register_music = function(src)
+  {
+    music_src = src;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', src, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function() {
+      xhr.onload = 0;
+      music_data = xhr.response;
+      if(ctx)
+      {
+        ctx.decodeAudioData(music_data, function(b){ music_buffer = b; if(music_shouldbeplaying) self.play_music(); },
+        function(e){ console.log("Error with decoding music data" + e.err); });
+        music_data = 0;
+      }
+    };
+    xhr.send();
+
+    return i;
+  }
+  self.play_music = function()
+  {
+    music_shouldbeplaying = 1;
+    if(ctx && ctx.state === 'suspended') ctx.resume();
+    if(ctx && music_buffer)
+    {
+      music_track = ctx.createBufferSource();
+      music_track.buffer = music_buffer;
+      music_track.connect(ctx.destination);
+      music_track.loop = true;
+      music_track.start(0);
+    }
+  }
+  self.stop_music = function()
+  {
+    music_shouldbeplaying = 0;
+    if(music_track) music_track.stop();
+    music_track = 0;
+  }
+
+  self.registerevt();
 }
 
 var ClipWrangler = function()
@@ -675,6 +815,7 @@ var ClipWrangler = function()
       if(clip) ctx.clip();
     }
   }
+  if(noclip) self.hijack_clip_bb = noop;
 
   self.hijack_clip = function(offx,offy,maxx,maxy,clip,ctx)
   {
@@ -714,11 +855,13 @@ var ClipWrangler = function()
     }
     if(clip) ctx.clip();
   }
+  if(noclip) self.hijack_clip = noop;
 
   self.hijack_unclip = function(ctx)
   {
     ctx.restore();
   }
+  if(noclip) self.hijack_unclip = noop;
 
   self.clip_bb = function()
   {
@@ -729,6 +872,7 @@ var ClipWrangler = function()
     self.ctx.rect(self.bb_x, self.bb_y, self.bb_w, self.bb_h);
     self.ctx.clip();
   }
+  if(noclip) self.clip_bb = noop;
 
   self.clip = function()
   {
@@ -747,12 +891,14 @@ var ClipWrangler = function()
     }
     self.ctx.clip();
   }
+  if(noclip) self.clip = noop;
 
   self.unclip = function()
   {
     if(!self.enabled) return;
     self.hijack_unclip(self.ctx);
   }
+  if(noclip) self.unclip = noop;
 
   self.debug = function()
   {
@@ -799,6 +945,7 @@ var ClipWrangler = function()
     self.ctx.strokeRect(10,10,10,10);
     self.ctx.restore();
   }
+  if(noclip) self.debug = noop;
 
   self.register = function(x,y,w,h)
   {
@@ -857,6 +1004,7 @@ var ClipWrangler = function()
       self.n_flop_clips++;
     }
   }
+  if(noclip) self.register = noop;
 
   self.safe_register = function(x,y,w,h)
   {
@@ -868,6 +1016,7 @@ var ClipWrangler = function()
     if(y < 0) { h += y; y = 0; }
     self.register(x,y,w,h);
   }
+  if(noclip) self.safe_register = noop;
 
   self.get_bb = function()
   {
@@ -893,6 +1042,7 @@ var ClipWrangler = function()
       self.bb_h = max(flip_bb_y+flip_bb_h,flop_bb_y+flop_bb_h)-self.bb_y;
     }
   }
+  if(noclip) self.get_bb = noop;
 
   self.flip = function()
   {
@@ -902,6 +1052,7 @@ var ClipWrangler = function()
       self.n_flip_clips = 0;
     flip_flop = !flip_flop;
   }
+  if(noclip) self.flip = noop;
 
 }
 
@@ -984,6 +1135,24 @@ var drawOutlineText = function(txt,x,y,b,color,ctx)
   ctx.fillText(txt,x  ,y-b);
 }
 
+var drawFullOutlineText = function(txt,x,y,b,co,ci,r,ctx)
+{
+  if(r) { x = round(x); y = round(y); }
+  if(co)
+  {
+    ctx.fillStyle = co;
+    var n = 16;
+    for(var i = 0; i < n; i++)
+      ctx.fillText(txt,x-b*cos(i/n*twopi),y-b*sin(i/n*twopi));
+  }
+
+  if(ci)
+  {
+    ctx.fillStyle = ci;
+    ctx.fillText(txt,x,y);
+  }
+}
+
 var drawLine = function(ax,ay,bx,by,ctx)
 {
   ctx.beginPath();
@@ -1032,6 +1201,28 @@ var drawGrid = function(center_x, center_y, unit_x, unit_y, w, h, ctx)
     t = invlerp(0,h);
   }
 }
+
+var textVCenterOff = function(txt,font,off,canv)
+{
+  var w = canv.width;
+  var h = canv.height;
+  canv.context.fillStyle = white;
+  canv.context.fillRect(0,0,w,h);
+  canv.context.font = font;
+  canv.context.fillStyle = black;
+  canv.context.textAlign = "center";
+  var y = floor(h*off);
+  canv.context.fillText(txt,w/2,y);
+  var data = canv.context.getImageData(0,0,w,h);
+  var early_y = h-1;
+  var late_y = 0;
+  data = data.data;
+  for(var i = 0;       i < w*h*4; i++) if(data[i] != 255) { early_y = floor(i/(4*w)); break; }
+  for(var i = w*h*4-1; i >= 0;    i--) if(data[i] != 255) { late_y  = floor(i/(4*w)); break; }
+  var h = late_y-early_y;
+  return y-(late_y-h/2);
+}
+
 
 //vector
 var addvec = function(a,b,r)
@@ -1083,22 +1274,6 @@ var avevec = function(a,b,r)
   r.y = (a.y+b.y)/2.;
 }
 
-var spritesheet = function(img)
-{
-  var self = this;
-
-  self.img = img;
-  self.sprites = [];
-
-  //push sprites
-  //self.sprites.push({x:2,y:160,w:w,h:h});
-
-  self.drawSprite = function(i,x,y,w,h)
-  {
-    ctx.drawImage(self.img,self.sprites[i].x,self.sprites[i].y,self.sprites[i].w,self.sprites[i].h,x,y,w,h);
-  }
-}
-
 var atlas = function()
 {
   var self = this;
@@ -1114,84 +1289,150 @@ var atlas = function()
   self.ex = 0;
   self.ey = 0;
 
-  self.img = 0;
+  self.imgs = [];
+  self.pimgs = [];
   self.context = 0;
   self.n_sprites = 0;
-  self.sprite_meta = []; //x,y,w,h,inx,iny,inw,inh
-  self.sprite_meta_n = 8;
+  self.sprite_meta = []; //n,x,y,w,h,inx,iny,inw,inh
+  self.sprite_meta_n = 9;
+
+  self.debug = urlp.debug;
+  self.debug = 0;
 
   self.init = function(w,h)
   {
-  /*
-    //doesn't do anything...
-    if(window.OffscreenCanvas)
+    self.w = w;
+    self.h = h;
+    self.nextAtlas();
+  }
+  self.img_onload = function()
+  {
+    for(var i = 0; i < self.pimgs.length; i++)
     {
-      self.img = new OffscreenCanvas(w,h);
-      self.img.context = self.img.getContext('2d');
+      var pimg = self.pimgs[i];
+      if(pimg && pimg.naturalWidth != 0)
+      {
+        var img = self.imgs[i];
+        pimg.onload = 0;
+        //HACK TO APPEASE APPLE BUG
+        cpa_dealloc(img.width,img.height,"atlas"+i+" (load)");
+        img.width = 0; img.height = 0;
+        if(self.context == img.context) self.context = 0;
+        img = 0;
+        self.imgs[i] = pimg;
+        self.pimgs[i] = 0;
+      }
     }
-  */
-    self.img = GenIcon(w,h);
+  }
+  self.commit = function()
+  {
+    for(var i = 0; i < self.imgs.length; i++)
+    {
+      var img = self.imgs[i];
+      if(img.tagName == "CANVAS" && !self.pimgs[i])
+        self.commiti(i);
+    }
+  }
+  self.commiti = function(i)
+  {
+    self.pimgs[i] = new Image();
+    self.pimgs[i].onload = self.img_onload;
+    self.pimgs[i].src = self.imgs[i].toDataURL("image/png");
+  }
+  self.nextAtlas = function()
+  {
+    if(self.imgs.length) self.commiti(self.imgs.length-1);
+    var i = self.imgs.length;
+    self.imgs[i] = GenIcon(self.w,self.h);
+    cpa_alloc(self.w,self.h,"atlas"+i);
     self.x = 0;
     self.y = 0;
     self.row_h = 0;
-    self.w = w;
-    self.h = h;
-    self.context = self.img.context;
+    self.context = self.imgs[i].context;
     self.context.fillStyle = "#00FF00";
-    //self.context.fillRect(0,0,w,h); //for debugging
+    if(self.debug) self.context.fillRect(0,0,self.w,self.h);
+  }
+
+  self.sprite_w = function(i)
+  {
+    return self.sprite_meta[self.sprite_meta_n*i+3];
+  }
+  self.sprite_h = function(i)
+  {
+    return self.sprite_meta[self.sprite_meta_n*i+4];
   }
 
   self.editSprite = function(i)
   {
     var index = self.sprite_meta_n*i;
-    self.ex += self.sprite_meta[index+0]-self.sprite_meta[index+4];
-    self.ey += self.sprite_meta[index+1]-self.sprite_meta[index+5];
-    self.img.context.save();
-    self.img.context.beginPath();
-    self.img.context.rect(self.sprite_meta[index+0],self.sprite_meta[index+1],self.sprite_meta[index+6],self.sprite_meta[index+7]);
-    self.img.context.clip();
-    //self.img.context.translate(self.sprite_meta[index+0]-self.sprite_meta[index+4],self.sprite_meta[index+1]-self.sprite_meta[index+5]);
+    self.ex += self.sprite_meta[index+1]-self.sprite_meta[index+5];
+    self.ey += self.sprite_meta[index+2]-self.sprite_meta[index+6];
+    self.context.save();
+    self.context.beginPath();
+    self.context.rect(self.sprite_meta[index+1],self.sprite_meta[index+2],self.sprite_meta[index+7],self.sprite_meta[index+8]);
+    self.context.clip();
+    //self.context.translate(self.sprite_meta[index+1]-self.sprite_meta[index+5],self.sprite_meta[index+2]-self.sprite_meta[index+6]);
   }
   self.commitSprite = function()
   {
     self.ex = 0;
     self.ey = 0;
-    self.img.context.restore();
-    //self.img.context.resetTransform();
+    self.context.restore();
+    //self.context.resetTransform();
   }
   self.getWholeSprite = function(x,y,w,h)
   {
     var i = self.n_sprites;
-    var index = self.sprite_meta_n*i;
-    self.sprite_meta[index+0] = x;
-    self.sprite_meta[index+1] = y;
-    self.sprite_meta[index+2] = w;
-    self.sprite_meta[index+3] = h;
-    self.sprite_meta[index+4] = 0;
-    self.sprite_meta[index+5] = 0;
-    self.sprite_meta[index+6] = w;
-    self.sprite_meta[index+7] = h;
     self.n_sprites++;
+    var index = self.sprite_meta_n*i;
+    self.sprite_meta[index+0] = self.imgs.length-1;
+    self.sprite_meta[index+1] = x;
+    self.sprite_meta[index+2] = y;
+    self.sprite_meta[index+3] = w;
+    self.sprite_meta[index+4] = h;
+    self.sprite_meta[index+5] = 0;
+    self.sprite_meta[index+6] = 0;
+    self.sprite_meta[index+7] = w;
+    self.sprite_meta[index+8] = h;
     self.context.clearRect(x,y,w,h);
+    if(self.debug) self.context.strokeRect(x,y,w,h);
     self.editSprite(i);
     return i;
   }
   self.getPartSprite = function(x,y,w,h,inx,iny,inw,inh)
   {
     var i = self.n_sprites;
-    var index = self.sprite_meta_n*i;
-    self.sprite_meta[index+0] = x;
-    self.sprite_meta[index+1] = y;
-    self.sprite_meta[index+2] = w;
-    self.sprite_meta[index+3] = h;
-    self.sprite_meta[index+4] = inx;
-    self.sprite_meta[index+5] = iny;
-    self.sprite_meta[index+6] = inw;
-    self.sprite_meta[index+7] = inh;
     self.n_sprites++;
+    var index = self.sprite_meta_n*i;
+    self.sprite_meta[index+0] = self.imgs.length-1;
+    self.sprite_meta[index+1] = x;
+    self.sprite_meta[index+2] = y;
+    self.sprite_meta[index+3] = w;
+    self.sprite_meta[index+4] = h;
+    self.sprite_meta[index+5] = inx;
+    self.sprite_meta[index+6] = iny;
+    self.sprite_meta[index+7] = inw;
+    self.sprite_meta[index+8] = inh;
     self.context.clearRect(x,y,inw,inh);
+    if(self.debug) self.context.strokeRect(x,y,inw,inh);
     self.editSprite(i);
     return i;
+  }
+  self.collideWholeSprite = function(x,y,w,h)
+  {
+    var index = 0;
+    if(x+w > self.w) return 1;
+    for(var i = 0; i < self.n_sprites; i++)
+    {
+      index = self.sprite_meta_n*i;
+      if(self.sprite_meta[index+0] != self.imgs.length-1) continue;
+      var sx = self.sprite_meta[index+1];
+      var sy = self.sprite_meta[index+2];
+      var sw = self.sprite_meta[index+7];
+      var sh = self.sprite_meta[index+8];
+      if(sx < x+w && x < sx+sw && sy < y+h && y < sy+sh) return 1;
+    }
+    return 0;
   }
   self.nextRow = function()
   {
@@ -1205,6 +1446,7 @@ var atlas = function()
     h = ceil(h);
     if(self.x+w > self.w) self.nextRow();
     if(h > self.row_h) self.row_h = h;
+    if(self.y+h > self.h) self.nextAtlas();
     var i = self.getWholeSprite(self.x,self.y,w,h);
     self.x += w;
     return i;
@@ -1219,33 +1461,248 @@ var atlas = function()
     inh = ceil(inh);
     if(self.x+inw > self.w) self.nextRow();
     if(inh > self.row_h) self.row_h = inh;
+    if(self.y+inh > self.h) self.nextAtlas();
     var i = self.getPartSprite(self.x,self.y,w,h,inx,iny,inw,inh);
     self.x += inw;
     return i;
+  }
+  self.fitWholeSprite = function(w,h)
+  {
+    w = ceil(w);
+    h = ceil(h);
+
+    var sx;
+    var sy;
+    var sw;
+    var sh;
+
+    var x;
+    var y;
+
+    var best_i = -1;
+    var best_y = 99999999;
+    var best_x = 99999999;
+    var best_mode = 0;
+
+    var index = 0;
+    for(var i = 0; i < self.n_sprites; i++)
+    {
+      index = self.sprite_meta_n*i;
+      if(self.sprite_meta[index+0] != self.imgs.length-1) continue;
+      sx = self.sprite_meta[index+1];
+      sy = self.sprite_meta[index+2];
+      sw = self.sprite_meta[index+7];
+      sh = self.sprite_meta[index+8];
+      x = sx+sw;
+      y = sy;
+      if((y < best_y || (y == best_y && x < best_x)) && !self.collideWholeSprite(x,y,w,h))
+      {
+        best_i = i;
+        best_y = y;
+        best_x = x;
+        best_mode = 0;
+      }
+      x = sx;
+      y = sy+sh;
+      if((y < best_y || (y == best_y && x < best_x)) && !self.collideWholeSprite(x,y,w,h))
+      {
+        best_i = i;
+        best_y = y;
+        best_x = x;
+        best_mode = 1;
+      }
+    }
+
+    if(best_i > -1)
+    {
+      index = self.sprite_meta_n*best_i;
+      sx = self.sprite_meta[index+1];
+      sy = self.sprite_meta[index+2];
+      sw = self.sprite_meta[index+7];
+      sh = self.sprite_meta[index+8];
+      switch(best_mode)
+      {
+        case 0:
+          x = sx+sw;
+          y = sy;
+          break;
+        case 1:
+          x = sx;
+          y = sy+sh;
+          break;
+      }
+
+      if(y+h > self.y+self.row_h)
+      {
+        if(x == 0) //new row
+        {
+          self.x = w;
+          self.y = y;
+          self.row_h = h;
+        }
+        else //extend current row
+          self.row_h = y+h-self.y;
+      }
+      if(y+h > self.y && x+w > self.x) self.x = x+w;
+      if(y+h > self.h) { self.nextAtlas(); x = 0; y = 0; }
+      return self.getWholeSprite(x,y,w,h);
+    }
+
+    return self.nextWholeSprite(w,h);
+  }
+  self.fitPartSprite = function(w,h,inx,iny,inw,inh)
+  {
+    w = ceil(w);
+    h = ceil(h);
+    inx = floor(inx);
+    iny = floor(iny);
+    inw = ceil(inw);
+    inh = ceil(inh);
+
+    var sx;
+    var sy;
+    var sw;
+    var sh;
+
+    var x;
+    var y;
+
+    var best_i = -1;
+    var best_y = 99999999;
+    var best_mode = 0;
+
+    var index = 0;
+    for(var i = 0; i < self.n_sprites; i++)
+    {
+      index = self.sprite_meta_n*i;
+      if(self.sprite_meta[index+0] != self.imgs.length-1) continue;
+      sx = self.sprite_meta[index+1];
+      sy = self.sprite_meta[index+2];
+      sw = self.sprite_meta[index+7];
+      sh = self.sprite_meta[index+8];
+      x = sx+sw;
+      y = sy;
+      if(y < best_y && !self.collideWholeSprite(x,y,inw,inh))
+      {
+        best_i = i;
+        best_y = y;
+        best_mode = 0;
+      }
+      x = sx;
+      y = sy+sh;
+      if(y < best_y && !self.collideWholeSprite(x,y,inw,inh))
+      {
+        best_i = i;
+        best_y = y;
+        best_mode = 1;
+      }
+    }
+
+    if(best_i > -1)
+    {
+      index = self.sprite_meta_n*best_i;
+      sx = self.sprite_meta[index+1];
+      sy = self.sprite_meta[index+2];
+      sw = self.sprite_meta[index+7];
+      sh = self.sprite_meta[index+8];
+      switch(best_mode)
+      {
+        case 0:
+          x = sx+sw;
+          y = sy;
+          break;
+        case 1:
+          x = sx;
+          y = sy+sh;
+          break;
+      }
+
+      if(y+inh > self.y+self.row_h)
+      {
+        if(x == 0) //new row
+        {
+          self.x = inw;
+          self.y = y;
+          self.row_h = inh;
+        }
+        else //extend current row
+          self.row_h = y+inh-self.y;
+      }
+      if(y+inh > self.y && x+inw > self.x) self.x = x+inw;
+      if(y+inh > self.h) { self.nextAtlas(); x = 0; y = 0; }
+      return self.getPartSprite(x,y,w,h,inx,iny,inw,inh);
+    }
+
+    return self.nextPartSprite(w,h,inx,iny,inw,inh);
   }
 
   self.drawWholeSprite = function(i,x,y,w,h,ctx)
   {
     var index = self.sprite_meta_n*i;
-    ctx.drawImage(self.img,self.sprite_meta[index+0],self.sprite_meta[index+1],self.sprite_meta[index+2],self.sprite_meta[index+3],x,y,w,h);
+    var n = self.sprite_meta[index+0];
+    if(!n) n = 0;
+    ctx.drawImage(self.imgs[n],self.sprite_meta[index+1],self.sprite_meta[index+2],self.sprite_meta[index+3],self.sprite_meta[index+4],x,y,w,h);
   }
   self.drawPartSprite = function(i,x,y,w,h,ctx)
   {
     var index = self.sprite_meta_n*i;
-    var ws = self.sprite_meta[index+2]/w;
-    var hs = self.sprite_meta[index+3]/h;
-    ctx.drawImage(self.img,self.sprite_meta[index+0],self.sprite_meta[index+1],self.sprite_meta[index+6],self.sprite_meta[index+7],x+self.sprite_meta[index+4]*ws,y+self.sprite_meta[index+5]*hs,self.sprite_meta[index+6]*ws,self.sprite_meta[index+7]*hs);
+    var n = self.sprite_meta[index+0];
+    if(!n) n = 0;
+    var ws = self.sprite_meta[index+3]/w;
+    var hs = self.sprite_meta[index+4]/h;
+    ctx.drawImage(self.imgs[n],self.sprite_meta[index+1],self.sprite_meta[index+2],self.sprite_meta[index+7],self.sprite_meta[index+8],x+self.sprite_meta[index+5]*ws,y+self.sprite_meta[index+6]*hs,self.sprite_meta[index+7]*ws,self.sprite_meta[index+8]*hs);
   }
 
   self.blitWholeSprite = function(i,x,y,ctx)
   {
     var index = self.sprite_meta_n*i;
-    ctx.drawImage(self.img,self.sprite_meta[index+0],self.sprite_meta[index+1],self.sprite_meta[index+2],self.sprite_meta[index+3],x,y,self.sprite_meta[index+2],self.sprite_meta[index+3]);
+    var n = self.sprite_meta[index+0];
+    if(!n) n = 0;
+    var w = self.sprite_meta[index+3];
+    var h = self.sprite_meta[index+4];
+    ctx.drawImage(self.imgs[n],self.sprite_meta[index+1],self.sprite_meta[index+2],w,h,x,y,w,h);
   }
   self.blitPartSprite = function(i,x,y,ctx)
   {
     var index = self.sprite_meta_n*i;
-    ctx.drawImage(self.img,self.sprite_meta[index+0],self.sprite_meta[index+1],self.sprite_meta[index+6],self.sprite_meta[index+7],x+self.sprite_meta[index+4],y+self.sprite_meta[index+5],self.sprite_meta[index+6],self.sprite_meta[index+7]);
+    var n = self.sprite_meta[index+0];
+    if(!n) n = 0;
+    var inw = self.sprite_meta[index+7];
+    var inh = self.sprite_meta[index+8];
+    ctx.drawImage(self.imgs[n],self.sprite_meta[index+1],self.sprite_meta[index+2],inw,inh,x+self.sprite_meta[index+5],y+self.sprite_meta[index+6],inw,inh);
+  }
+  self.blitWholeSpriteCentered = function(i,x,y,ctx)
+  {
+    var index = self.sprite_meta_n*i;
+    var n = self.sprite_meta[index+0];
+    if(!n) n = 0;
+    var w = self.sprite_meta[index+3];
+    var h = self.sprite_meta[index+4];
+    ctx.drawImage(self.imgs[n],self.sprite_meta[index+1],self.sprite_meta[index+2],w,h,floor(x-w/2),floor(y-h/2),w,h);
+  }
+  self.blitWholeSpriteCenteredOnBoard = function(i,x,y,bw,ctx)
+  {
+    var index = self.sprite_meta_n*i;
+    var n = self.sprite_meta[index+0];
+    if(!n) n = 0;
+    var w = self.sprite_meta[index+3];
+    var h = self.sprite_meta[index+4];
+    x = floor(x-w/2);
+    y = floor(y-h/2);
+    if(x+w > bw) x -= (x+w)-bw;
+    if(x < 0) x = 0;
+    ctx.drawImage(self.imgs[n],self.sprite_meta[index+1],self.sprite_meta[index+2],w,h,x,y,w,h);
+  }
+  self.blitPartSpriteCentered = function(i,x,y,ctx)
+  {
+    var index = self.sprite_meta_n*i;
+    var n = self.sprite_meta[index+0];
+    if(!n) n = 0;
+    var inw = self.sprite_meta[index+7];
+    var inh = self.sprite_meta[index+8];
+    var w = self.sprite_meta[index+3];
+    var h = self.sprite_meta[index+4];
+    ctx.drawImage(self.imgs[n],self.sprite_meta[index+1],self.sprite_meta[index+2],inw,inh,floor(x-w/2+self.sprite_meta[index+5]),floor(y-h/2+self.sprite_meta[index+6]),inw,inh);
   }
 }
 
@@ -2402,34 +2859,6 @@ var running_deriv_variable_graph = function()
     ctx.lineWidth = 1;
     ctx.strokeRect(self.x,self.y,self.w,self.h);
   }
-}
-
-var unplayed_audio_queue = [];
-var playHandlePromise = function(audio,q)
-{
-  r = audio.play();
-  if(!r) return;
-  r.catch(function(err){
-    if(!q) return;
-    for(var i = 0; i < unplayed_audio_queue.length; i++)
-      if(unplayed_audio_queue[i] == audio) return;
-    unplayed_audio_queue.push(audio);
-  });
-}
-
-function flush_unplayed_audio()
-{
-  for(var i = 0; i < unplayed_audio_queue.length; i++)
-  {
-    var r = unplayed_audio_queue[i].play();
-    if(r) r.catch(noop);
-  }
-  unplayed_audio_queue = [];
-}
-
-function break_unplayed_audio()
-{
-  unplayed_audio_queue = [];
 }
 
 function fullscreen()

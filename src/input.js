@@ -1,4 +1,3 @@
-'use strict';
 function Box(x,y,w,h)
 {
   var self = this;

@@ -1,29 +1,23 @@
-'use strict';
-var GamePlayScene = function(game, stage)
+var GamePlayScene = function()
 {
   var self = this;
-
-  self.resize = function(s)
-  {
-    stage = s;
-    gg.stage = stage;
-    gg.canvas = gg.stage.canvas;
-    gg.ctx = gg.stage.context;
-
-    if(hoverer) hoverer.detach(); hoverer = new PersistentHoverer({source:gg.canvas});
-    if(clicker) clicker.detach(); clicker = new Clicker({source:gg.canvas});
-    if(dragger) dragger.detach(); dragger = new Dragger({source:gg.canvas});
-    if(gg.cam) gg.cam = {wx:0,wy:0,ww:gg.stage.width,wh:gg.stage.height};
-  }
 
   var hoverer;
   var clicker;
   var dragger;
   var cam;
 
+  self.resize = function()
+  {
+    if(hoverer) hoverer.detach(); hoverer = new PersistentHoverer({source:gg.canvas});
+    if(clicker) clicker.detach(); clicker = new Clicker({source:gg.canvas});
+    if(dragger) dragger.detach(); dragger = new Dragger({source:gg.canvas});
+    if(gg.cam) gg.cam = {wx:0,wy:0,ww:gg.stage.width,wh:gg.stage.height};
+  }
+
   self.ready = function()
   {
-    self.resize(stage);
+    self.resize();
   };
 
   var t_mod_twelve_pi = 0;

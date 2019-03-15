@@ -1,4 +1,3 @@
-'use strict';
 //Literally the inverse of "click"
 var Blurer = function(init)
 {
@@ -13,13 +12,13 @@ var Blurer = function(init)
   var evts = [];
   self.attach = function() //will get auto-called at creation
   {
-    if(platform == DO_PLATFORM_PC)          self.source.addEventListener('mousedown', blur, false);
-    else if(platform == DO_PLATFORM_MOBILE) self.source.addEventListener('touchstart', blur, false);
+    if(platform == PLATFORM_PC)          self.source.addEventListener('mousedown', blur, false);
+    else if(platform == PLATFORM_MOBILE) self.source.addEventListener('touchstart', blur, false);
   }
   self.detach = function()
   {
-    if(platform == DO_PLATFORM_PC)          self.source.removeEventListener('mousedown', blur);
-    else if(platform == DO_PLATFORM_MOBILE) self.source.removeEventListener('touchstart', blur);
+    if(platform == PLATFORM_PC)          self.source.removeEventListener('mousedown', blur);
+    else if(platform == PLATFORM_MOBILE) self.source.removeEventListener('touchstart', blur);
   }
 
   function blur(evt)
