@@ -38,6 +38,11 @@ var Stage = function(init)
       self.webgl_canvas.height = self.canvas.height;
       self.webgl_canvas.style.width = self.width+"px";
       self.webgl_canvas.style.height = self.height+"px";
+      if(self.webgl_canvas.context)
+      {
+        self.webgl_canvas.context.viewport(0, 0, self.webgl_canvas.width, self.webgl_canvas.height);
+        self.webgl_canvas.context.uniform2f(self.webgl_canvas.viewport_unif, self.webgl_canvas.width, self.webgl_canvas.height);
+      }
     }
   }
   self.resize(init.width,init.height);
@@ -64,8 +69,8 @@ function initGL(canvas)
     void main(void)
     {
       vec2 p = position;
-      p.x = (((position.x*transform.z)+transform.x)/ viewport.x)-1.0;
-      p.y = (((position.y*transform.w)+transform.y)/-viewport.y)+1.0;
+      p.x = (((position.x*transform.z)+transform.x)/ viewport.x)*2.0-1.0;
+      p.y = (((position.y*transform.w)+transform.y)/-viewport.y)*2.0+1.0;
       gl_Position = vec4(p, 0.0, 1.0);
     }
   `;
@@ -98,8 +103,8 @@ function initGL(canvas)
 
   var position_attrib = ctx.getAttribLocation(p, "position");
   ctx.enableVertexAttribArray(position_attrib);
-  var viewport_unif = ctx.getUniformLocation(p, "viewport");
-  var transform_unif = ctx.getUniformLocation(p, "transform");
+  canvas.viewport_unif = ctx.getUniformLocation(p, "viewport");
+  canvas.transform_unif = ctx.getUniformLocation(p, "transform");
 
   var position_buff = ctx.createBuffer();
   ctx.bindBuffer(ctx.ARRAY_BUFFER, position_buff);
@@ -121,8 +126,8 @@ function initGL(canvas)
 
   ctx.bindBuffer(ctx.ARRAY_BUFFER, position_buff);
   ctx.vertexAttribPointer(position_attrib, position_buff_item_size, ctx.FLOAT, false, 0, 0);
-  ctx.uniform2f(viewport_unif, canvas.width, canvas.height);
-  ctx.uniform4f(transform_unif, 0,0,100,100);
+  ctx.uniform2f(canvas.viewport_unif, canvas.width, canvas.height);
+  ctx.uniform4f(canvas.transform_unif, 0,0,100,100);
   ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, position_buff_num_items);
 }
 

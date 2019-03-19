@@ -44,7 +44,7 @@ var GamePlayScene = function()
   self.draw = function()
   {
     gg.ctx.fillStyle = white;
-    gg.ctx.clearRect(0,0,gg.canvas.width,gg.canvas.height);
+    gg.ctx.clearRect(0, 0, gg.canvas.width, gg.canvas.height);
   };
 
   self.cleanup = function()
