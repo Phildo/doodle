@@ -14,8 +14,8 @@ function doSetPosOnEvent(evt)
 {
   if(evt.offsetX != undefined)
   {
-    evt.doX = evt.offsetX;
-    evt.doY = evt.offsetY;
+    evt.doX = evt.offsetX*gg.stage.dpr;
+    evt.doY = evt.offsetY*gg.stage.dpr;
   }
   else if(evt.touches != undefined && evt.touches[0] != undefined)
   {
@@ -35,14 +35,14 @@ function doSetPosOnEvent(evt)
     var top  = bb.top +  scrollTop - clientTop;
     var left = bb.left + scrollLeft - clientLeft;
 
-    evt.doX = evt.touches[0].pageX-left;
-    evt.doY = evt.touches[0].pageY-top;
+    evt.doX = (evt.touches[0].pageX-left)*gg.stage.dpr;
+    evt.doY = (evt.touches[0].pageY-top)*gg.stage.dpr;
 
   }
   else if(evt.layerX != undefined && evt.originalTarget != undefined)
   {
-    evt.doX = evt.layerX-evt.originalTarget.offsetLeft;
-    evt.doY = evt.layerY-evt.originalTarget.offsetTop;
+    evt.doX = (evt.layerX-evt.originalTarget.offsetLeft)*gg.stage.dpr;
+    evt.doY = (evt.layerY-evt.originalTarget.offsetTop)*gg.stage.dpr;
   }
   else //give up because javascript is terrible
   {
