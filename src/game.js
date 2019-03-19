@@ -12,8 +12,16 @@ var Game = function(init)
   gg.canvas = gg.stage.canvas;
   gg.ctx = gg.stage.context;
 
-  var scene = new GamePlayScene();
+  var scenes = [new LoadingScene(), new GamePlayScene()];
+  var scene_i = 0;
 
+  self.resize_requested = 0;
+  self.resize_args = 0;
+  self.request_resize = function(args)
+  {
+    self.resize_requested = 10;
+    self.resize_args = args;
+  }
   self.resize = function(args)
   {
     if(args.width == gg.stage.width && args.height == gg.stage.height) return;
@@ -28,12 +36,13 @@ var Game = function(init)
     }
     gg.canvas = gg.stage.canvas;
     gg.ctx = gg.stage.context;
-    scene.resize_requested = 10;
+    scenes[scene_i].resize();
   }
 
+  var prev_t;
   self.begin = function()
   {
-    scene.ready();
+    scenes[scene_i].ready();
     prev_t = performance.now();
     tick(prev_t);
   };
@@ -41,12 +50,35 @@ var Game = function(init)
   var tick = function(cur_t)
   {
     requestAnimationFrame(tick);
-    if(cur_t-prev_t > 30) scene.tick(2);
+
+    if(self.resize_requested)
+    {
+      self.resize_requested--;
+      if(!self.resize_requested)
+      {
+        self.resize(self.resize_args);
+        self.resize_args = 0;
+      }
+    }
+
+    if(cur_t-prev_t > 30) scenes[scene_i].tick(2);
     else if(cur_t-prev_t < 8) return;
-    else scene.tick(1);
-    scene.draw();
+    else scenes[scene_i].tick(1);
+    scenes[scene_i].draw();
     prev_t = cur_t;
   };
+
+  self.nextScene = function()
+  {
+    self.setScene(scene_i+1);
+  };
+
+  self.setScene = function(i)
+  {
+    scenes[scene_i].cleanup();
+    scene_i = i;
+    scenes[scene_i].ready();
+  }
 
 };
 

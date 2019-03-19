@@ -57,7 +57,7 @@ var LoadingScene = function()
   {
     self.resize();
     pad = 20;
-    barw = (stage.width-(2*pad));
+    barw = (gg.canvas.width-(2*pad));
 
     loading_percent_loaded = 0;
     ticks_since_loading_ready = 0;
@@ -156,19 +156,20 @@ var LoadingScene = function()
     if(percent_loaded >= 1.0) ticks_since_ready++;
     if(ticks_since_ready >= post_load_countdown)
     {
-      if(ticks_since_loading_ready > 1) game.nextScene(); //set 1 = # ticks in preloading sequence
-      //game.nextScene();
+      if(ticks_since_loading_ready > 1) gg.game.nextScene(); //set 1 = # ticks in preloading sequence
+      //gg.game.nextScene();
     }
   };
 
   self.draw = function()
   {
+    var ctx = gg.ctx;
     if(chase_percent_loaded < 1)
     {
       ctx.fillStyle = "#888888";
       ctx.strokeStyle = "#888888";
-      ctx.fillRect(pad,stage.height/2,chase_percent_loaded*barw,1);
-      ctx.strokeRect(pad-1,(stage.height/2)-1,barw+2,3);
+      ctx.fillRect(pad,gg.canvas.height/2,chase_percent_loaded*barw,1);
+      ctx.strokeRect(pad-1,(gg.canvas.height/2)-1,barw+2,3);
     }
 
     if(loading_percent_loaded >= 1)
@@ -177,7 +178,6 @@ var LoadingScene = function()
     }
 
 /*
-    ctx.fillStyle = blue;
     var x = 10;
     var y = 30;
     for(var i = 0; i < loading_img_srcs.length; i++)

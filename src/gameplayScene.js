@@ -12,7 +12,7 @@ var GamePlayScene = function()
     if(hoverer) hoverer.detach(); hoverer = new PersistentHoverer({source:gg.canvas});
     if(clicker) clicker.detach(); clicker = new Clicker({source:gg.canvas});
     if(dragger) dragger.detach(); dragger = new Dragger({source:gg.canvas});
-    if(gg.cam) gg.cam = {wx:0,wy:0,ww:gg.stage.width,wh:gg.stage.height};
+    if(gg.cam) gg.cam = {wx:0,wy:0,ww:gg.canvas.width,wh:gg.canvas.height};
   }
 
   self.ready = function()
@@ -41,7 +41,7 @@ var GamePlayScene = function()
   self.draw = function()
   {
     gg.ctx.fillStyle = white;
-    gg.ctx.fillRect(0,0,gg.stage.width,gg.stage.height);
+    gg.ctx.fillRect(0,0,gg.canvas.width,gg.canvas.height);
   };
 
   self.cleanup = function()

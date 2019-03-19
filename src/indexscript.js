@@ -16,7 +16,7 @@ function resize()
   game_width = window.innerWidth;
   game_height = window.innerHeight;
 
-  if(g) g.resize({width:game_width,height:game_height});
+  if(g) g.request_resize({width:game_width,height:game_height});
   size_containers(game_width,game_height);
 }
 function begin()
