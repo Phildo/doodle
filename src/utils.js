@@ -1536,8 +1536,8 @@ var atlas = function()
       {
         if(x == 0) //new row
         {
+          self.nextRow();
           self.x = w;
-          self.y = y;
           self.row_h = h;
         }
         else //extend current row
@@ -1621,8 +1621,8 @@ var atlas = function()
       {
         if(x == 0) //new row
         {
+          self.nextRow();
           self.x = inw;
-          self.y = y;
           self.row_h = inh;
         }
         else //extend current row
