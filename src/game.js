@@ -7,7 +7,7 @@ var Game = function(init)
   gg.game = self;
 
   self.dpr = window.devicePixelRatio ? window.devicePixelRatio : 1;
-  var sargs = {width:init.width,height:init.height,container:init.container,dpr:self.dpr,smoothing:1}
+  var sargs = {width:init.width,height:init.height,container:init.container,dpr:self.dpr,smoothing:1,webgl:1}
   gg.stage = new Stage(sargs);
   gg.canvas = gg.stage.canvas;
   gg.ctx = gg.stage.context;
@@ -25,15 +25,7 @@ var Game = function(init)
   self.resize = function(args)
   {
     if(args.width == gg.stage.width && args.height == gg.stage.height) return;
-    document.getElementById(gg.stage.container).removeChild(gg.stage.canvas);
-    gg.stage.canvas.width = 0;
-    gg.stage.canvas.height = 0;
-    if(args.stage) gg.stage = args.stage;
-    else //must have width+height in args
-    {
-      var sargs = {width:args.width,height:args.height,container:gg.stage.container,dpr:self.dpr,smoothing:1}
-      gg.stage = new Stage(sargs);
-    }
+    gg.stage.resize(args.width,args.height);
     gg.canvas = gg.stage.canvas;
     gg.ctx = gg.stage.context;
     scenes[scene_i].resize();
