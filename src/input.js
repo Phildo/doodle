@@ -1,4 +1,4 @@
-function Box(x,y,w,h)
+function BB(x,y,w,h)
 {
   var self = this;
   self.x = x;
@@ -70,7 +70,7 @@ function TextBox(x,y,w,h,txt,callback)
   self.drag = function(evt)
   {
     evt.hit_ui = true;
-    self.down = ptWithinBox(self, evt.doX, evt.doY);
+    self.down = ptWithinBB(self, evt.doX, evt.doY);
   }
   self.dragFinish = function()
   {
@@ -292,7 +292,7 @@ function NumberBox(x,y,w,h,val,delta,callback)
     self.number = validateNum(self.number + -self.deltaY*self.delta);
     self.value = ""+self.number;
 
-    self.down = ptWithinBox(self, evt.doX, evt.doY);
+    self.down = ptWithinBB(self, evt.doX, evt.doY);
     callback(self.number);
   }
   self.dragFinish = function()

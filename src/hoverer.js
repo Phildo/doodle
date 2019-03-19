@@ -65,7 +65,7 @@ var Hoverer = function(init)
         {
           if(hoverable.hovering)
           {
-            if((hoverable.shouldHover && !hoverable.shouldHover(evt)) || (!hoverable.shouldHover && !doEvtWithinBox(evt,hoverable)))
+            if((hoverable.shouldHover && !hoverable.shouldHover(evt)) || (!hoverable.shouldHover && !doEvtWithinBB(evt,hoverable)))
             {
               hoverable.hovering = false;
               hoverable.unhover(evt);
@@ -77,7 +77,7 @@ var Hoverer = function(init)
         {
           if(hoverable.hovering)
           {
-            if((hoverable.shouldHover && !hoverable.shouldHover(evt)) || (!hoverable.shouldHover && !doEvtWithinBox(evt,hoverable)))
+            if((hoverable.shouldHover && !hoverable.shouldHover(evt)) || (!hoverable.shouldHover && !doEvtWithinBB(evt,hoverable)))
             {
               hoverable.hovering = false;
               hoverable.unhover(evt);
@@ -85,7 +85,7 @@ var Hoverer = function(init)
           }
           else if(!hoverable.hovering)
           {
-            if((hoverable.shouldHover && hoverable.shouldHover(evt)) || (!hoverable.shouldHover && doEvtWithinBox(evt,hoverable)))
+            if((hoverable.shouldHover && hoverable.shouldHover(evt)) || (!hoverable.shouldHover && doEvtWithinBB(evt,hoverable)))
             {
               hoverable.hovering = true;
               hoverable.hover(evt);
@@ -111,7 +111,7 @@ var Hoverer = function(init)
         {
           if(hoverable.hovering)
           {
-            if(!doEvtWithinBox(evt,hoverable))
+            if(!doEvtWithinBB(evt,hoverable))
             {
               hoverable.hovering = false;
               hoverable.unhover(evt);
@@ -123,7 +123,7 @@ var Hoverer = function(init)
         {
           if(hoverable.hovering)
           {
-            if(!doEvtWithinBox(evt,hoverable))
+            if(!doEvtWithinBB(evt,hoverable))
             {
               hoverable.hovering = false;
               hoverable.unhover(evt);
@@ -131,7 +131,7 @@ var Hoverer = function(init)
           }
           else if(!hoverable.hovering)
           {
-            if(doEvtWithinBox(evt,hoverable))
+            if(doEvtWithinBB(evt,hoverable))
             {
               hoverable.hovering = true;
               hoverable.hover(evt);
@@ -164,7 +164,7 @@ var Hoverable = function(args)
   self.h = args.h ? args.h : 0;
   self.shouldHover = args.shouldHover ? args.shouldHover : function(evt) //optional
   {
-    return doEvtWithinBox(evt, self);
+    return doEvtWithinBB(evt, self);
   }
   self.hover = args.hover ? args.hover : function(){};
   self.unhover = args.unhover ? args.unhover : function(){};

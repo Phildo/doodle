@@ -22,7 +22,7 @@ function doSetPosOnEvent(evt)
     //unfortunately, seems necessary...
     var t = evt.touches[0].target;
 
-    var box = t.getBoundingClientRect();
+    var bb = t.getBoundingClientRect();
     var body = document.body;
     var docEl = document.documentElement;
 
@@ -32,8 +32,8 @@ function doSetPosOnEvent(evt)
     var clientTop = docEl.clientTop || body.clientTop || 0;
     var clientLeft = docEl.clientLeft || body.clientLeft || 0;
 
-    var top  = box.top +  scrollTop - clientTop;
-    var left = box.left + scrollLeft - clientLeft;
+    var top  = bb.top +  scrollTop - clientTop;
+    var left = bb.left + scrollLeft - clientLeft;
 
     evt.doX = evt.touches[0].pageX-left;
     evt.doY = evt.touches[0].pageY-top;
@@ -51,9 +51,9 @@ function doSetPosOnEvent(evt)
   }
 }
 
-function doEvtWithinBox(evt, box)
+function doEvtWithinBB(evt, bb)
 {
-  return (evt.doX >= box.x && evt.doX <= box.x+box.w && evt.doY >= box.y && evt.doY <= box.y+box.h);
+  return (evt.doX >= bb.x && evt.doX <= bb.x+bb.w && evt.doY >= bb.y && evt.doY <= bb.y+bb.h);
 }
 function doEvtWithin(evt, x,y,w,h)
 {
@@ -287,22 +287,17 @@ var ptWithin = function(x,y,w,h,ptx,pty) { return (ptx >= x && ptx <= x+w && pty
 var ptNear = function(x,y,r,ptx,pty) { var dx = ptx-x; var dy = pty-y; return (dx*dx+dy*dy) < r*r; }
 var rectCollide = function(ax,ay,aw,ah,bx,by,bw,bh) { return ax < bx+bw && bx < ax+aw && ay < by+bh && by < ay+ah; }
 
-var ptWithinBox = function(box,ptx,pty)
+var ptWithinBB = function(bb,ptx,pty)
 {
-  return (ptx >= box.x && ptx <= box.x+box.w && pty >= box.y && pty <= box.y+box.h);
-}
-var boxWithinBox = function(boxa, boxb)
-{
-  console.log("not done!");
-  return false;
+  return (ptx >= bb.x && ptx <= bb.x+bb.w && pty >= bb.y && pty <= bb.y+bb.h);
 }
 var worldPtWithin = function(wx, wy, ww, wh, ptx, pty)
 {
   return (ptx >= wx-(ww/2) && ptx <= wx+(ww/2) && pty >= wy-(wh/2) && pty <= wy+(wh/2));
 }
-var worldPtWithinBox = function(box, ptx, pty)
+var worldPtWithinBB = function(bb, ptx, pty)
 {
-  return (ptx >= box.wx-(box.ww/2) && ptx <= box.wx+(box.ww/2) && pty >= box.wy-(box.wh/2) && pty <= box.wy+(box.wh/2));
+  return (ptx >= bb.wx-(bb.ww/2) && ptx <= bb.wx+(bb.ww/2) && pty >= bb.wy-(bb.wh/2) && pty <= bb.wy+(bb.wh/2));
 }
 
 //conversions
@@ -426,12 +421,12 @@ var polarToCart = function(polar,cart)
 //short name- will be used often to place elements by percent, while guaranteeing integer results
 var p    = function(percent, of) { return Math.floor(percent * of); }
 var invp = function(      n, of) { return n/of; }
-var setBox = function(box, x,y,w,h)
+var setBB = function(bb, x,y,w,h)
 {
-  box.x = x;
-  box.y = y;
-  box.w = w;
-  box.h = h;
+  bb.x = x;
+  bb.y = y;
+  bb.w = w;
+  bb.h = h;
 }
 
 //camera
@@ -446,21 +441,21 @@ var screenSpacePt = function(cam, canv, pt) //only operates on points!
   pt.x = (((( pt.wx)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
   pt.y = ((((-pt.wy)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
 }
-var screenSpaceCoords  = function(cam, canv, box) //same as screenSpace, but only updates coords
+var screenSpaceCoords  = function(cam, canv, bb) //same as screenSpace, but only updates coords
 {
-  box.x = (((( box.wx-box.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
-  box.y = ((((-box.wy-box.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
+  bb.x = (((( bb.wx-bb.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
+  bb.y = ((((-bb.wy-bb.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
 }
-var screenSpace  = function(cam, canv, box)
+var screenSpace  = function(cam, canv, bb)
 {
   //assumng xywh counterparts in world space (wx,wy,ww,wh,etc...)
-  //where wx,wy is *center* of box and cam
+  //where wx,wy is *center* of bb and cam
   //so cam.wx = 0; cam.ww = 1; would be a cam centered at the origin with visible range from -0.5 to 0.5
   //output xywh assume x,y is top left (ready to be 'blit' via canvas api)
-  box.w = (box.ww/cam.ww)*canv.width;
-  box.h = (box.wh/cam.wh)*canv.height;
-  box.x = (((( box.wx-box.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
-  box.y = ((((-box.wy-box.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
+  bb.w = (bb.ww/cam.ww)*canv.width;
+  bb.h = (bb.wh/cam.wh)*canv.height;
+  bb.x = (((( bb.wx-bb.ww/2)-cam.wx)+(cam.ww/2))/cam.ww)*canv.width;
+  bb.y = ((((-bb.wy-bb.wh/2)+cam.wy)+(cam.wh/2))/cam.wh)*canv.height;
 }
 var worldSpaceXpt = function(cam, canv, x) { return ((x/canv.width) -0.5)* cam.ww + cam.wx; }
 var worldSpaceYpt = function(cam, canv, y) { return ((y/canv.height)-0.5)*-cam.wh + cam.wy; }
@@ -478,17 +473,17 @@ var worldSpaceDoEvt = function(cam, stage, evt) //opposite of screenspace, doEvt
   evt.wx = ((evt.doX/stage.width) -0.5)* cam.ww + cam.wx;
   evt.wy = ((evt.doY/stage.height)-0.5)*-cam.wh + cam.wy;
 }
-var worldSpaceCoords = function(cam, canv, box) //opposite of screenspace, doesn't alter w/h (to preserve fp precision)
+var worldSpaceCoords = function(cam, canv, bb) //opposite of screenspace, doesn't alter w/h (to preserve fp precision)
 {
-  box.wx = (((box.x/canv.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
-  box.wy = (((box.y/canv.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
+  bb.wx = (((bb.x/canv.width) -0.5)* cam.ww + cam.wx)+bb.ww/2;
+  bb.wy = (((bb.y/canv.height)-0.5)*-cam.wh + cam.wy)-bb.wh/2;
 }
-var worldSpace = function(cam, canv, box) //opposite of screenspace
+var worldSpace = function(cam, canv, bb) //opposite of screenspace
 {
-  box.ww = (box.w/canv.width)*cam.ww;
-  box.wh = (box.h/canv.height)*cam.wh;
-  box.wx = (((box.x/canv.width) -0.5)* cam.ww + cam.wx)+box.ww/2;
-  box.wy = (((box.y/canv.height)-0.5)*-cam.wh + cam.wy)-box.wh/2;
+  bb.ww = (bb.w/canv.width)*cam.ww;
+  bb.wh = (bb.h/canv.height)*cam.wh;
+  bb.wx = (((bb.x/canv.width) -0.5)* cam.ww + cam.wx)+bb.ww/2;
+  bb.wy = (((bb.y/canv.height)-0.5)*-cam.wh + cam.wy)-bb.wh/2;
 }
 
 function lensqr(x,y)
@@ -1827,9 +1822,9 @@ function drawImageHeightCentered(image,x,y,h,ctx)
   var w = image.width*h/image.height;
   ctx.drawImage(image,x-w/2,y-h/2,w,h);
 }
-function drawImageBox(image,box,ctx)
+function drawImageBB(image,bb,ctx)
 {
-  ctx.drawImage(image,box.x,box.y,box.w,box.h);
+  ctx.drawImage(image,bb.x,bb.y,bb.w,bb.h);
 }
 function drawImageSizeCentered(image,x,y,s,ctx)
 {
@@ -1842,41 +1837,41 @@ function drawImageSizeCentered(image,x,y,s,ctx)
   }
   ctx.drawImage(image,x-w/2,y-h/2,w,h);
 }
-function strokeBox(box,ctx)
+function strokeBB(bb,ctx)
 {
-  ctx.strokeRect(box.x,box.y,box.w,box.h);
+  ctx.strokeRect(bb.x,bb.y,bb.w,bb.h);
 }
-function fillBox(box,ctx)
+function fillBB(bb,ctx)
 {
-  ctx.fillRect(box.x,box.y,box.w,box.h);
+  ctx.fillRect(bb.x,bb.y,bb.w,bb.h);
 }
-function fillRBox(box,r,ctx)
+function fillRBB(bb,r,ctx)
 {
   ctx.beginPath();
-  ctx.moveTo(box.x+r,box.y);
-  ctx.lineTo(box.x+box.w-r,box.y);
-  ctx.quadraticCurveTo(box.x+box.w,box.y,box.x+box.w,box.y+r);
-  ctx.lineTo(box.x+box.w,box.y+box.h-r);
-  ctx.quadraticCurveTo(box.x+box.w,box.y+box.h,box.x+box.w-r,box.y+box.h);
-  ctx.lineTo(box.x+r,box.y+box.h);
-  ctx.quadraticCurveTo(box.x,box.y+box.h,box.x,box.y+box.h-r);
-  ctx.lineTo(box.x,box.y+r);
-  ctx.quadraticCurveTo(box.x,box.y,box.x+r,box.y);
+  ctx.moveTo(bb.x+r,bb.y);
+  ctx.lineTo(bb.x+bb.w-r,bb.y);
+  ctx.quadraticCurveTo(bb.x+bb.w,bb.y,bb.x+bb.w,bb.y+r);
+  ctx.lineTo(bb.x+bb.w,bb.y+bb.h-r);
+  ctx.quadraticCurveTo(bb.x+bb.w,bb.y+bb.h,bb.x+bb.w-r,bb.y+bb.h);
+  ctx.lineTo(bb.x+r,bb.y+bb.h);
+  ctx.quadraticCurveTo(bb.x,bb.y+bb.h,bb.x,bb.y+bb.h-r);
+  ctx.lineTo(bb.x,bb.y+r);
+  ctx.quadraticCurveTo(bb.x,bb.y,bb.x+r,bb.y);
   ctx.closePath();
   ctx.fill();
 }
-function strokeRBox(box,r,ctx)
+function strokeRBB(bb,r,ctx)
 {
   ctx.beginPath();
-  ctx.moveTo(box.x+r,box.y);
-  ctx.lineTo(box.x+box.w-r,box.y);
-  ctx.quadraticCurveTo(box.x+box.w,box.y,box.x+box.w,box.y+r);
-  ctx.lineTo(box.x+box.w,box.y+box.h-r);
-  ctx.quadraticCurveTo(box.x+box.w,box.y+box.h,box.x+box.w-r,box.y+box.h);
-  ctx.lineTo(box.x+r,box.y+box.h);
-  ctx.quadraticCurveTo(box.x,box.y+box.h,box.x,box.y+box.h-r);
-  ctx.lineTo(box.x,box.y+r);
-  ctx.quadraticCurveTo(box.x,box.y,box.x+r,box.y);
+  ctx.moveTo(bb.x+r,bb.y);
+  ctx.lineTo(bb.x+bb.w-r,bb.y);
+  ctx.quadraticCurveTo(bb.x+bb.w,bb.y,bb.x+bb.w,bb.y+r);
+  ctx.lineTo(bb.x+bb.w,bb.y+bb.h-r);
+  ctx.quadraticCurveTo(bb.x+bb.w,bb.y+bb.h,bb.x+bb.w-r,bb.y+bb.h);
+  ctx.lineTo(bb.x+r,bb.y+bb.h);
+  ctx.quadraticCurveTo(bb.x,bb.y+bb.h,bb.x,bb.y+bb.h-r);
+  ctx.lineTo(bb.x,bb.y+r);
+  ctx.quadraticCurveTo(bb.x,bb.y,bb.x+r,bb.y);
   ctx.closePath();
   ctx.stroke();
 }
