@@ -287,6 +287,14 @@ var ptWithin = function(x,y,w,h,ptx,pty) { return (ptx >= x && ptx <= x+w && pty
 var ptNear = function(x,y,r,ptx,pty) { var dx = ptx-x; var dy = pty-y; return (dx*dx+dy*dy) < r*r; }
 var rectCollide = function(ax,ay,aw,ah,bx,by,bw,bh) { return ax < bx+bw && bx < ax+aw && ay < by+bh && by < ay+ah; }
 
+var setBB = function(bb, x,y,w,h)
+{
+  bb.x = x;
+  bb.y = y;
+  bb.w = w;
+  bb.h = h;
+}
+
 var ptWithinBB = function(bb,ptx,pty)
 {
   return (ptx >= bb.x && ptx <= bb.x+bb.w && pty >= bb.y && pty <= bb.y+bb.h);
@@ -416,17 +424,6 @@ var polarToCart = function(polar,cart)
 {
   cart.x = Math.cos(polar.dir)*polar.len;
   cart.y = Math.sin(polar.dir)*polar.len;
-}
-
-//short name- will be used often to place elements by percent, while guaranteeing integer results
-var p    = function(percent, of) { return Math.floor(percent * of); }
-var invp = function(      n, of) { return n/of; }
-var setBB = function(bb, x,y,w,h)
-{
-  bb.x = x;
-  bb.y = y;
-  bb.w = w;
-  bb.h = h;
 }
 
 //camera
