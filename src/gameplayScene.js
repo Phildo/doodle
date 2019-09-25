@@ -43,8 +43,11 @@ var GamePlayScene = function()
 
   self.draw = function()
   {
+    var w = gg.canvas.width;
+    var h = gg.canvas.height;
+
     gg.ctx.fillStyle = white;
-    gg.ctx.clearRect(0, 0, gg.canvas.width, gg.canvas.height);
+    gg.ctx.clearRect(0, 0, w, h);
   };
 
   self.cleanup = function()

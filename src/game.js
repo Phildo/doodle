@@ -7,7 +7,7 @@ var Game = function(init)
   gg.game = self;
 
   self.dpr = window.devicePixelRatio ? window.devicePixelRatio : 1;
-  var sargs = {width:init.width,height:init.height,container:init.container,dpr:self.dpr,smoothing:1,webgl:1}
+  var sargs = {width:init.width,height:init.height,container:init.container,dpr:self.dpr,smoothing:1,webgl:0}
   gg.stage = new Stage(sargs);
   gg.canvas = gg.stage.canvas;
   gg.ctx = gg.stage.context;
