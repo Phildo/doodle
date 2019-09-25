@@ -23,8 +23,9 @@ function begin()
 {
   resize();
   g = new Game({width:game_width,height:game_height,container:"stage_container"});
+  gg.audwrangler = new AudWrangler("assets/silence.mp3");
   g.begin();
 }
-window.addEventListener("load",begin,{capture:true,once:true,passive:true});
+window.addEventListener("load",  begin, {capture:true,once:true, passive:true});
 window.addEventListener("resize",resize,{capture:true,once:false,passive:true});
 
