@@ -592,6 +592,7 @@ var AudWrangler = function(silence_src)
   var aud_src = [];
   var aud_data = [];
   var aud_buffer = [];
+  self.auds_loaded = 0;
 
   var music_src = [];
   var music_data = [];
@@ -676,6 +677,7 @@ var AudWrangler = function(silence_src)
     xhr.onload = function() {
       xhr.onload = 0;
       aud_data[i] = xhr.response;
+      self.auds_loaded++;
       if(ctx)
       {
         ctx.decodeAudioData(aud_data[i], function(b){ aud_buffer[i] = b; },

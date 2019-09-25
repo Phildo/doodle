@@ -118,7 +118,6 @@ var LoadingScene = function()
 
     //put asset paths in audio_srcs
     //audio_srcs.push("assets/audio.mp3");
-    gg.aud_wrangler = new AudWrangler();
     for(var i = 0; i < audio_srcs.length; i++)
       gg.aud_wrangler.register(audio_srcs[i]);
   };
