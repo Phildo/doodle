@@ -112,6 +112,7 @@ var orange  = "#EE682C";
 var gray    = "#888888";
 var dark_gray  = "#444444";
 var light_gray = "#CCCCCC";
+var vlight_gray = "#EEEEEE";
 
 var dark_red    = "#880000";
 var light_red   = "#FFAAAA";
@@ -229,12 +230,12 @@ var pi = Math.PI;
 var twopi = 2*pi;
 var halfpi = pi/2;
 var quarterpi = pi/4;
+var eighthpi = pi/8;
 var twelvepi = 12*pi;
 
 function noop(){}
 function ffunc(){return false;}
 function tfunc(){return true;}
-
 
 var bounceup_data = [];
 {
@@ -258,6 +259,40 @@ var bounceup = function(t)
   var root = floor(t);
   var d = t-root;
   return lerp(bounceup_data[root],bounceup_data[root+1],d);
+}
+
+var tink_data = [];
+{
+  var n = 50;
+  var p = 0;
+  var vel = 0.1;
+  var pull = 0.02;
+  var damp = 0.8;
+  for(var i = 0; i < n; i++)
+  {
+    p += vel;
+    vel -= pull;
+    vel *= damp;
+    if(p < 0)
+    {
+      p = 0;
+      vel = abs(vel);
+      if(vel < pull*3)
+      {
+        vel = 0;
+        pull = 0;
+      }
+    }
+    tink_data[i] = p;
+  }
+  tink_data[n] = tink_data[n-1];
+}
+var tink = function(t)
+{
+  t *= tink_data.length-2; //knowing that final data is duplicate
+  var root = floor(t);
+  var d = t-root;
+  return lerp(tink_data[root],tink_data[root+1],d);
 }
 
 var fdisp = function(f,n) //formats float for display (from 8.124512 to 8.12)
@@ -378,7 +413,7 @@ var HSV2RGB = function(hsv, rgb)
 
 var RGB2Hex = function(rgb)
 {
-  return "#"+dec2Hex(Math.floor(rgb.r*255))+dec2Hex(Math.floor(rgb.g*255))+dec2Hex(Math.floor(rgb.b*255));
+  return "#"+decToHex(Math.floor(rgb.r*255),2)+decToHex(Math.floor(rgb.g*255),2)+decToHex(Math.floor(rgb.b*255),2);
 }
 var dec2Hex = function(n)
 {
@@ -490,6 +525,11 @@ function lensqr(x,y)
 function len(x,y)
 {
   return Math.sqrt(x*x+y*y);
+}
+
+function between(v,min,max)
+{
+  return v >= min && v <= max;
 }
 
 function vlensqr(v)
@@ -1359,6 +1399,29 @@ var atlas = function()
     self.context.fillStyle = "#00FF00";
     if(self.debug) self.context.fillRect(0,0,self.w,self.h);
   }
+  self.destroy = function()
+  {
+    for(var i = 0; i < self.pimgs.length; i++)
+    {
+      var pimg = self.pimgs[i];
+      if(pimg)
+      {
+        pimg.onload = 0;
+        self.pimgs[i] = 0;
+      }
+    }
+    for(var i = 0; i < self.imgs.length; i++)
+    {
+      var img = self.imgs[i];
+      if(img.tagName == "CANVAS")
+      {
+        img.width = 0;
+        img.height = 0;
+        self.imgs[i] = 0;
+      }
+    }
+    self.context = 0;
+  }
 
   self.sprite_w = function(i)
   {
@@ -1938,6 +2001,80 @@ function strokeRRect(x,y,w,h,r,ctx)
   ctx.quadraticCurveTo(x,y+h,x,y+h-r);
   ctx.lineTo(x,y+r);
   ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  ctx.stroke();
+}
+function fillSelectiveRRect(x,y,w,h,tl,tr,br,bl,r,ctx)
+{
+  ctx.beginPath();
+
+  if(tl) ctx.moveTo(x+r,y);
+  else   ctx.moveTo(x  ,y);
+
+  if(tr)
+  {
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  }
+  else ctx.lineTo(x+w,y);
+
+  if(br)
+  {
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  }
+  else ctx.lineTo(x+w,y+h);
+
+  if(bl)
+  {
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  }
+  else ctx.lineTo(x,y+h);
+
+  if(tl)
+  {
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  }
+
+  ctx.closePath();
+  ctx.fill();
+}
+function strokeSelectiveRRect(x,y,w,h,tl,tr,br,bl,r,ctx)
+{
+  ctx.beginPath();
+
+  if(tl) ctx.moveTo(x+r,y);
+  else   ctx.moveTo(x  ,y);
+
+  if(tr)
+  {
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  }
+  else ctx.lineTo(x+w,y);
+
+  if(br)
+  {
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  }
+  else ctx.lineTo(x+w,y+h);
+
+  if(bl)
+  {
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  }
+  else ctx.lineTo(x,y+h);
+
+  if(tl)
+  {
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  }
+
   ctx.closePath();
   ctx.stroke();
 }
