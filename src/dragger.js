@@ -21,9 +21,10 @@ var Dragger = function(init)
     }
     else if(platform == PLATFORM_MOBILE)
     {
-      self.source.addEventListener('touchstart', begin, evt_options);
-      self.source.addEventListener('touchmove',  drag,  evt_options);
-      self.source.addEventListener('touchend',   end,   evt_options);
+      self.source.addEventListener('touchstart',  begin, evt_options);
+      self.source.addEventListener('touchmove',   drag,  evt_options);
+      self.source.addEventListener('touchend',    end,   evt_options);
+      self.source.addEventListener('touchcancel', end,   evt_options);
       window.addEventListener('touchmove', detectOut, evt_options);
     }
   }
@@ -38,9 +39,10 @@ var Dragger = function(init)
     }
     else if(platform == PLATFORM_MOBILE)
     {
-      self.source.removeEventListener('touchstart', begin, evt_options);
-      self.source.removeEventListener('touchmove',  drag, evt_options);
-      self.source.removeEventListener('touchend',   end, evt_options);
+      self.source.removeEventListener('touchstart',  begin, evt_options);
+      self.source.removeEventListener('touchmove',   drag, evt_options);
+      self.source.removeEventListener('touchend',    end, evt_options);
+      self.source.removeEventListener('touchcancel', end, evt_options);
       window.removeEventListener('touchmove', detectOut, evt_options);
     }
     self.source = 0;
